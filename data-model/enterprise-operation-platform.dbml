@@ -342,3 +342,154 @@ Ref: audit.audit_logs.user_id > iam.users.id
 // CHECK (catalog.items.item_type IN ('material', 'service', 'asset'))
 // CHECK (supplier_documents.supplier_company_profile_id IS NULL OR supplier_documents.supplier_id IS NOT NULL)
 // CHECK (supplier_documents has either a global supplier owner or a company profile owner)
+
+// Procurement schema — Requisition → Approval → Purchase Order → Goods Receipt
+// Relates to the base schema via organization.companies, organization.departments,
+// iam.company_users, catalog.items, and vendor.supplier_company_profiles.
+
+Table procurement.requisitions {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  company_id uuid [not null]
+  requisition_number varchar(50) [not null]
+  requester_id uuid [not null]
+  department_id uuid
+  request_date date [not null, default: `now()`]
+  required_date date
+  status varchar(30) [not null, default: 'Draft', note: 'Draft, Submitted, Pending, Approved, Rejected, Cancelled, or Completed']
+  justification varchar(500) [not null]
+  approval_status varchar(30) [not null, default: 'Pending', note: 'Pending, Approved, or Rejected']
+  total_estimated_amount decimal(15,2)
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (company_id, requisition_number) [unique]
+    status
+  }
+}
+
+Table procurement.requisition_items {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  requisition_id uuid [not null]
+  item_id uuid [not null]
+  description varchar(500) [not null]
+  quantity_requested decimal(15,2) [not null, note: 'Must be > 0']
+  unit_of_measure varchar(20) [not null]
+  estimated_unit_price decimal(15,2)
+  estimated_total_price decimal(15,2)
+  required_date date
+  item_status varchar(30) [not null, default: 'Pending']
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+}
+
+Table procurement.approvals {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  requisition_id uuid [not null]
+  approver_id uuid [not null]
+  approval_level int [not null, note: 'Positive integer']
+  approval_status varchar(30) [not null, default: 'Pending', note: 'Pending, Approved, or Rejected']
+  approval_date timestamptz
+  comments varchar(500)
+  rejection_reason varchar(500)
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (requisition_id, approval_level) [unique]
+  }
+}
+
+Table procurement.purchase_orders {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  company_id uuid [not null]
+  po_number varchar(50) [not null]
+  requisition_id uuid [not null]
+  supplier_id uuid [not null]
+  buyer_id uuid [not null]
+  order_date date [not null, default: `now()`]
+  expected_delivery_date date
+  currency char(3) [not null, default: 'NGN', note: 'Valid 3-letter currency code']
+  total_amount decimal(15,2) [not null, default: 0, note: 'Must be >= 0']
+  status varchar(30) [not null, default: 'Issued', note: 'Draft, Submitted, Pending, Approved, Rejected, Cancelled, or Completed']
+  payment_terms varchar(100)
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (company_id, po_number) [unique]
+    status
+  }
+}
+
+Table procurement.purchase_order_items {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  purchase_order_id uuid [not null]
+  requisition_item_id uuid
+  item_id uuid [not null]
+  description varchar(500) [not null]
+  quantity_ordered decimal(15,2) [not null, note: 'Must be > 0']
+  unit_of_measure varchar(20) [not null]
+  unit_price decimal(15,2) [not null]
+  line_total decimal(15,2) [not null]
+  delivery_date date
+  item_status varchar(30) [not null, default: 'Open']
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+}
+
+Table procurement.goods_receipts {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  receipt_number varchar(50) [not null, unique]
+  purchase_order_id uuid [not null]
+  received_by uuid [not null]
+  receipt_date timestamptz [not null, default: `now()`]
+  delivery_note_number varchar(100)
+  receipt_status varchar(30) [not null, default: 'Pending', note: 'e.g. Pending, Partially Received, Completed']
+  remarks varchar(500)
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table procurement.goods_receipt_items {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  goods_receipt_id uuid [not null]
+  purchase_order_item_id uuid [not null]
+  quantity_received decimal(15,2) [not null, note: 'Must be >= 0']
+  quantity_accepted decimal(15,2) [not null, note: 'Must be <= quantity_received']
+  quantity_rejected decimal(15,2) [not null, default: 0, note: 'Must be <= quantity_received']
+  rejection_reason varchar(500)
+  condition_status varchar(30) [not null, default: 'Good']
+  inspection_status varchar(30) [not null, default: 'Pending']
+  received_date timestamptz [not null, default: `now()`]
+}
+
+Ref: procurement.requisitions.company_id > organization.companies.id
+Ref: procurement.requisitions.requester_id > iam.company_users.id
+Ref: procurement.requisitions.department_id > organization.departments.id
+Ref: procurement.requisition_items.requisition_id > procurement.requisitions.id [delete: cascade]
+Ref: procurement.requisition_items.item_id > catalog.items.id
+Ref: procurement.approvals.requisition_id > procurement.requisitions.id [delete: cascade]
+Ref: procurement.approvals.approver_id > iam.company_users.id
+Ref: procurement.purchase_orders.company_id > organization.companies.id
+Ref: procurement.purchase_orders.requisition_id > procurement.requisitions.id
+Ref: procurement.purchase_orders.supplier_id > vendor.supplier_company_profiles.id
+Ref: procurement.purchase_orders.buyer_id > iam.company_users.id
+Ref: procurement.purchase_order_items.purchase_order_id > procurement.purchase_orders.id [delete: cascade]
+Ref: procurement.purchase_order_items.requisition_item_id > procurement.requisition_items.id
+Ref: procurement.purchase_order_items.item_id > catalog.items.id
+Ref: procurement.goods_receipts.purchase_order_id > procurement.purchase_orders.id
+Ref: procurement.goods_receipts.received_by > iam.company_users.id
+Ref: procurement.goods_receipt_items.goods_receipt_id > procurement.goods_receipts.id [delete: cascade]
+Ref: procurement.goods_receipt_items.purchase_order_item_id > procurement.purchase_order_items.id
+
+// Additional PostgreSQL checks to add in migrations.
+// CHECK (procurement.requisitions.status IN ('Draft','Submitted','Pending','Approved','Rejected','Cancelled','Completed'))
+// CHECK (procurement.requisitions.approval_status IN ('Pending','Approved','Rejected'))
+// CHECK (procurement.approvals.approval_status IN ('Pending','Approved','Rejected'))
+// CHECK (procurement.approvals.approval_level > 0)
+// CHECK (procurement.requisition_items.quantity_requested > 0)
+// CHECK (procurement.purchase_orders.status IN ('Draft','Submitted','Pending','Approved','Rejected','Cancelled','Completed'))
+// CHECK (procurement.purchase_orders.total_amount >= 0)
+// CHECK (procurement.purchase_order_items.quantity_ordered > 0)
+// CHECK (procurement.goods_receipt_items.quantity_received >= 0)
+// CHECK (procurement.goods_receipt_items.quantity_accepted <= procurement.goods_receipt_items.quantity_received)
+// CHECK (procurement.goods_receipt_items.quantity_rejected <= procurement.goods_receipt_items.quantity_received)
