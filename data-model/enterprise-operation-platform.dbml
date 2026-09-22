@@ -1,22 +1,47 @@
 Project enterprise_operation_platform {
+
   database_type: 'PostgreSQL'
-  Note: 'Foundational organization, IAM, catalog, vendor, and audit schema.'
+
+  Note: 'V1 foundational organization, IAM, catalog, vendor, audit, and procurement schema.'
+
 }
 
-// PostgreSQL extension required by the UUID defaults below.
+// ============================================================
+// PostgreSQL Extension
+// ============================================================
+
+// Required for gen_random_uuid()
+//
 // CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+
+// ============================================================
+// ORGANIZATION
+// ============================================================
+
 Table organization.companies {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   name varchar(255) [not null]
   legal_name varchar(255)
+
   registration_number varchar(100)
   tax_identification_number varchar(100)
+
   industry varchar(100)
+
   country_code char(2) [not null, default: 'NG']
   default_currency char(3) [not null, default: 'NGN']
+
   timezone varchar(100) [not null, default: 'Africa/Lagos']
-  status varchar(30) [not null, default: 'active', note: 'active, suspended, or inactive']
+
+  status varchar(30) [
+    not null,
+    default: 'active',
+    note: 'active, suspended, or inactive'
+  ]
+
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 
@@ -25,471 +50,1134 @@ Table organization.companies {
   }
 }
 
+
 Table organization.departments {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   company_id uuid [not null]
+
   name varchar(150) [not null]
   code varchar(50)
-  manager_company_user_id uuid
+
+  manager_company_user_id uuid [
+    note: 'Manager must be a company user belonging to the same company.'
+  ]
+
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 
   indexes {
+
     (company_id, name) [unique]
+
     (company_id, code) [unique]
   }
 }
 
+
 Table organization.locations {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   company_id uuid [not null]
+
   name varchar(150) [not null]
   code varchar(50) [not null]
-  type varchar(50) [not null, default: 'office', note: 'office, warehouse, branch, site, factory, or other']
+
+  type varchar(50) [
+    not null,
+    default: 'office',
+    note: 'office, warehouse, branch, site, factory, or other'
+  ]
+
   address text
   city varchar(100)
   state varchar(100)
+
   country_code char(2)
+
   is_active boolean [not null, default: true]
+
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 
   indexes {
+
     (company_id, code) [unique]
+
   }
 }
+
+
+// ============================================================
+// IAM
+// ============================================================
 
 Table iam.users {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   email varchar(255) [not null, unique]
   password_hash text [not null]
+
   first_name varchar(100) [not null]
   last_name varchar(100) [not null]
+
   phone varchar(50)
-  status varchar(30) [not null, default: 'active', note: 'active, suspended, or inactive']
+
+  status varchar(30) [
+    not null,
+    default: 'active',
+    note: 'active, suspended, or inactive'
+  ]
+
   last_login_at timestamptz
+
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 }
+
 
 Table iam.company_users {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   company_id uuid [not null]
   user_id uuid [not null]
+
   department_id uuid
+
   employee_number varchar(100)
   job_title varchar(150)
-  status varchar(30) [not null, default: 'active', note: 'active, suspended, or inactive']
+
+  status varchar(30) [
+    not null,
+    default: 'active',
+    note: 'active, suspended, or inactive'
+  ]
+
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 
   indexes {
+
     (company_id, user_id) [unique]
+
     (company_id, employee_number) [unique]
+
   }
 }
+
 
 Table iam.roles {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   name varchar(100) [not null, unique]
+
   description text
+
   created_at timestamptz [not null, default: `now()`]
 }
+
 
 Table iam.permissions {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   name varchar(150) [not null, unique]
+
   description text
+
   created_at timestamptz [not null, default: `now()`]
 }
+
 
 Table iam.user_roles {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   company_user_id uuid [not null]
   role_id uuid [not null]
+
   created_at timestamptz [not null, default: `now()`]
 
   indexes {
+
     (company_user_id, role_id) [unique]
+
   }
 }
+
 
 Table iam.role_permissions {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   role_id uuid [not null]
   permission_id uuid [not null]
+
   created_at timestamptz [not null, default: `now()`]
 
   indexes {
+
     (role_id, permission_id) [unique]
+
   }
 }
+
+
+// ============================================================
+// CATALOG
+// ============================================================
 
 Table catalog.item_categories {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   company_id uuid [not null]
+
   parent_id uuid
+
   name varchar(150) [not null]
   description text
+
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 
   indexes {
+
     (company_id, name) [unique]
+
   }
 }
+
 
 Table catalog.units_of_measure {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   code varchar(20) [not null, unique]
+
   name varchar(100) [not null]
+
   created_at timestamptz [not null, default: `now()`]
 }
+
 
 Table catalog.items {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   company_id uuid [not null]
+
   category_id uuid
+
   unit_of_measure_id uuid [not null]
+
   sku varchar(100)
+
   name varchar(255) [not null]
+
   description text
-  item_type varchar(30) [not null, default: 'material', note: 'material, service, or asset']
+
+  item_type varchar(30) [
+    not null,
+    default: 'material',
+    note: 'material, service, or asset'
+  ]
+
   is_stockable boolean [not null, default: true]
+
   is_active boolean [not null, default: true]
+
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 
   indexes {
+
     (company_id, sku) [unique]
+
   }
 }
+
+
+// ============================================================
+// VENDOR
+// ============================================================
 
 Table vendor.suppliers {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   legal_name varchar(255) [not null]
   trading_name varchar(255)
+
   registration_number varchar(100)
   tax_identification_number varchar(100)
+
   supplier_type varchar(50)
+
   country_code char(2)
-  status varchar(30) [not null, default: 'active', note: 'active, inactive, or suspended']
+
+  status varchar(30) [
+    not null,
+    default: 'active',
+    note: 'active, inactive, or suspended'
+  ]
+
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 }
 
+
 Table vendor.supplier_company_profiles {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   supplier_id uuid [not null]
   company_id uuid [not null]
+
   supplier_code varchar(100)
-  relationship_status varchar(30) [not null, default: 'prospective', note: 'prospective, active, suspended, blocked, or inactive']
-  onboarding_status varchar(30) [not null, default: 'pending', note: 'pending, in_progress, completed, or rejected']
+
+  relationship_status varchar(30) [
+    not null,
+    default: 'prospective',
+    note: 'prospective, active, suspended, blocked, or inactive'
+  ]
+
+  onboarding_status varchar(30) [
+    not null,
+    default: 'pending',
+    note: 'pending, in_progress, completed, or rejected'
+  ]
+
   notes text
+
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 
   indexes {
+
     (supplier_id, company_id) [unique]
+
     (company_id, supplier_code) [unique]
+
   }
 }
 
+
 Table vendor.supplier_contacts {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   supplier_id uuid [not null]
+
   name varchar(200) [not null]
+
   email varchar(255)
   phone varchar(50)
   position varchar(150)
+
   is_primary boolean [not null, default: false]
+
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 }
+
 
 Table vendor.supplier_documents {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   supplier_id uuid [not null]
-  supplier_company_profile_id uuid
+
+  supplier_company_profile_id uuid [
+    note: 'Optional. Null means the document is globally associated with the supplier; populated means it belongs to a specific company relationship.'
+  ]
+
   document_type varchar(100) [not null]
+
   document_number varchar(150)
+
   file_url text [not null]
+
   file_hash varchar(128)
+
   issued_at date
   expires_at date
-  status varchar(30) [not null, default: 'pending', note: 'pending, valid, expired, or rejected']
+
+  status varchar(30) [
+    not null,
+    default: 'pending',
+    note: 'pending, valid, expired, or rejected'
+  ]
+
   uploaded_by uuid
+
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 }
+
+
+// ============================================================
+// VENDOR VERIFICATION
+// ============================================================
 
 Table vendor.verification_cases {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   supplier_company_profile_id uuid [not null]
+
   case_number varchar(100) [not null, unique]
-  verification_type varchar(50) [not null, default: 'initial']
-  status varchar(30) [not null, default: 'open', note: 'open, in_progress, approved, rejected, expired, or cancelled']
+
+  verification_type varchar(50) [
+    not null,
+    default: 'initial',
+    note: 'initial, periodic, renewal, or re_verification'
+  ]
+
+  status varchar(30) [
+    not null,
+    default: 'open',
+    note: 'open, in_progress, approved, rejected, expired, or cancelled'
+  ]
+
   opened_by uuid [not null]
+
   opened_at timestamptz [not null, default: `now()`]
+
   completed_at timestamptz
+
   expires_at timestamptz
+
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 }
+
 
 Table vendor.verification_checks {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   verification_case_id uuid [not null]
+
   check_type varchar(100) [not null]
+
   name varchar(150) [not null]
-  status varchar(30) [not null, default: 'pending', note: 'pending, in_progress, passed, failed, or waived']
+
+  status varchar(30) [
+    not null,
+    default: 'pending',
+    note: 'pending, in_progress, passed, failed, or waived'
+  ]
+
   is_required boolean [not null, default: true]
+
   checked_by uuid
+
   checked_at timestamptz
+
   notes text
+
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 }
 
+
 Table vendor.verification_evidence {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   verification_check_id uuid [not null]
+
   supplier_document_id uuid
+
   evidence_type varchar(100) [not null]
+
   file_url text
+
   description text
+
   uploaded_by uuid [not null]
+
   created_at timestamptz [not null, default: `now()`]
 }
 
+
 Table vendor.verification_reviews {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   verification_case_id uuid [not null]
+
   reviewer_user_id uuid [not null]
-  decision varchar(30) [not null, note: 'approved, rejected, or requires_changes']
+
+  decision varchar(30) [
+    not null,
+    note: 'approved, rejected, or requires_changes'
+  ]
+
   comments text
+
   reviewed_at timestamptz [not null, default: `now()`]
 }
 
+
 Table vendor.supplier_risk_assessments {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   verification_case_id uuid [not null]
-  risk_level varchar(30) [not null, note: 'low, medium, high, or critical']
+
+  risk_level varchar(30) [
+    not null,
+    note: 'low, medium, high, or critical'
+  ]
+
   risk_score numeric(5,2)
+
   rationale text
+
   assessed_by uuid [not null]
+
   assessed_at timestamptz [not null, default: `now()`]
+
   expires_at timestamptz
 }
 
+
+// ============================================================
+// AUDIT
+// ============================================================
+
 Table audit.audit_logs {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   company_id uuid
+
   user_id uuid
+
   action varchar(100) [not null]
+
   entity_type varchar(100) [not null]
+
   entity_id uuid
+
   old_values jsonb
+
   new_values jsonb
+
   ip_address inet
+
   user_agent text
+
   created_at timestamptz [not null, default: `now()`]
 
   indexes {
+
     (company_id, created_at)
+
     (entity_type, entity_id)
+
   }
 }
 
-Ref: organization.departments.company_id > organization.companies.id
-Ref: organization.departments.manager_company_user_id > iam.company_users.id
-Ref: organization.locations.company_id > organization.companies.id
-Ref: iam.company_users.company_id > organization.companies.id
-Ref: iam.company_users.user_id > iam.users.id
-Ref: iam.company_users.department_id > organization.departments.id
-Ref: iam.user_roles.company_user_id > iam.company_users.id [delete: cascade]
-Ref: iam.user_roles.role_id > iam.roles.id [delete: cascade]
-Ref: iam.role_permissions.role_id > iam.roles.id [delete: cascade]
-Ref: iam.role_permissions.permission_id > iam.permissions.id [delete: cascade]
-Ref: catalog.item_categories.company_id > organization.companies.id
-Ref: catalog.item_categories.parent_id > catalog.item_categories.id
-Ref: catalog.items.company_id > organization.companies.id
-Ref: catalog.items.category_id > catalog.item_categories.id
-Ref: catalog.items.unit_of_measure_id > catalog.units_of_measure.id
-Ref: vendor.supplier_company_profiles.supplier_id > vendor.suppliers.id
-Ref: vendor.supplier_company_profiles.company_id > organization.companies.id
-Ref: vendor.supplier_contacts.supplier_id > vendor.suppliers.id [delete: cascade]
-Ref: vendor.supplier_documents.supplier_id > vendor.suppliers.id [delete: cascade]
-Ref: vendor.supplier_documents.supplier_company_profile_id > vendor.supplier_company_profiles.id
-Ref: vendor.supplier_documents.uploaded_by > iam.users.id
-Ref: vendor.verification_cases.supplier_company_profile_id > vendor.supplier_company_profiles.id
-Ref: vendor.verification_cases.opened_by > iam.users.id
-Ref: vendor.verification_checks.verification_case_id > vendor.verification_cases.id [delete: cascade]
-Ref: vendor.verification_checks.checked_by > iam.users.id
-Ref: vendor.verification_evidence.verification_check_id > vendor.verification_checks.id [delete: cascade]
-Ref: vendor.verification_evidence.supplier_document_id > vendor.supplier_documents.id
-Ref: vendor.verification_evidence.uploaded_by > iam.users.id
-Ref: vendor.verification_reviews.verification_case_id > vendor.verification_cases.id [delete: cascade]
-Ref: vendor.verification_reviews.reviewer_user_id > iam.users.id
-Ref: vendor.supplier_risk_assessments.verification_case_id > vendor.verification_cases.id [delete: cascade]
-Ref: vendor.supplier_risk_assessments.assessed_by > iam.users.id
-Ref: audit.audit_logs.company_id > organization.companies.id
-Ref: audit.audit_logs.user_id > iam.users.id
 
-// Additional PostgreSQL checks to add in migrations.
-// CHECK (organization.companies.status IN ('active', 'suspended', 'inactive'))
-// CHECK (organization.locations.type IN ('office', 'warehouse', 'branch', 'site', 'factory', 'other'))
-// CHECK (catalog.items.item_type IN ('material', 'service', 'asset'))
-// CHECK (supplier_documents.supplier_company_profile_id IS NULL OR supplier_documents.supplier_id IS NOT NULL)
-// CHECK (supplier_documents has either a global supplier owner or a company profile owner)
-
-// Procurement schema — Requisition → Approval → Purchase Order → Goods Receipt
-// Relates to the base schema via organization.companies, organization.departments,
-// iam.company_users, catalog.items, and vendor.supplier_company_profiles.
+// ============================================================
+// PROCUREMENT
+// Requisition → Approval → Purchase Order → Goods Receipt
+// ============================================================
 
 Table procurement.requisitions {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   company_id uuid [not null]
+
   requisition_number varchar(50) [not null]
+
   requester_id uuid [not null]
+
   department_id uuid
-  request_date date [not null, default: `now()`]
+
+  request_date date [
+    not null,
+    default: `CURRENT_DATE`
+  ]
+
   required_date date
-  status varchar(30) [not null, default: 'Draft', note: 'Draft, Submitted, Pending, Approved, Rejected, Cancelled, or Completed']
+
+  status varchar(30) [
+    not null,
+    default: 'Draft',
+    note: 'Draft, Submitted, Pending, Approved, Rejected, Cancelled, or Completed'
+  ]
+
   justification varchar(500) [not null]
-  approval_status varchar(30) [not null, default: 'Pending', note: 'Pending, Approved, or Rejected']
+
+  approval_status varchar(30) [
+    not null,
+    default: 'Pending',
+    note: 'Pending, Approved, or Rejected'
+  ]
+
   total_estimated_amount decimal(15,2)
+
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 
   indexes {
+
     (company_id, requisition_number) [unique]
+
     status
+
   }
 }
+
 
 Table procurement.requisition_items {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   requisition_id uuid [not null]
+
   item_id uuid [not null]
+
   description varchar(500) [not null]
-  quantity_requested decimal(15,2) [not null, note: 'Must be > 0']
-  unit_of_measure varchar(20) [not null]
+
+  quantity_requested decimal(15,2) [
+    not null,
+    note: 'Must be > 0'
+  ]
+
+  unit_of_measure_id uuid [not null]
+
   estimated_unit_price decimal(15,2)
+
   estimated_total_price decimal(15,2)
+
   required_date date
-  item_status varchar(30) [not null, default: 'Pending']
+
+  item_status varchar(30) [
+    not null,
+    default: 'Pending'
+  ]
+
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 }
+
 
 Table procurement.approvals {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   requisition_id uuid [not null]
+
   approver_id uuid [not null]
-  approval_level int [not null, note: 'Positive integer']
-  approval_status varchar(30) [not null, default: 'Pending', note: 'Pending, Approved, or Rejected']
+
+  approval_level int [
+    not null,
+    note: 'Positive integer'
+  ]
+
+  approval_status varchar(30) [
+    not null,
+    default: 'Pending',
+    note: 'Pending, Approved, or Rejected'
+  ]
+
   approval_date timestamptz
+
   comments varchar(500)
+
   rejection_reason varchar(500)
+
   created_at timestamptz [not null, default: `now()`]
 
   indexes {
+
     (requisition_id, approval_level) [unique]
+
   }
 }
+
 
 Table procurement.purchase_orders {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   company_id uuid [not null]
+
   po_number varchar(50) [not null]
+
   requisition_id uuid [not null]
+
   supplier_id uuid [not null]
+
   buyer_id uuid [not null]
-  order_date date [not null, default: `now()`]
+
+  order_date date [
+    not null,
+    default: `CURRENT_DATE`
+  ]
+
   expected_delivery_date date
-  currency char(3) [not null, default: 'NGN', note: 'Valid 3-letter currency code']
-  total_amount decimal(15,2) [not null, default: 0, note: 'Must be >= 0']
-  status varchar(30) [not null, default: 'Issued', note: 'Draft, Submitted, Pending, Approved, Rejected, Cancelled, or Completed']
+
+  currency char(3) [
+    not null,
+    default: 'NGN',
+    note: 'Valid 3-letter currency code'
+  ]
+
+  total_amount decimal(15,2) [
+    not null,
+    default: 0,
+    note: 'Must be >= 0'
+  ]
+
+  status varchar(30) [
+    not null,
+    default: 'Issued',
+    note: 'Draft, Submitted, Pending, Approved, Rejected, Cancelled, or Completed'
+  ]
+
   payment_terms varchar(100)
+
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 
   indexes {
+
     (company_id, po_number) [unique]
+
     status
+
   }
 }
 
+
 Table procurement.purchase_order_items {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   purchase_order_id uuid [not null]
+
   requisition_item_id uuid
+
   item_id uuid [not null]
+
   description varchar(500) [not null]
-  quantity_ordered decimal(15,2) [not null, note: 'Must be > 0']
-  unit_of_measure varchar(20) [not null]
+
+  quantity_ordered decimal(15,2) [
+    not null,
+    note: 'Must be > 0'
+  ]
+
+  unit_of_measure_id uuid [not null]
+
   unit_price decimal(15,2) [not null]
+
   line_total decimal(15,2) [not null]
+
   delivery_date date
-  item_status varchar(30) [not null, default: 'Open']
+
+  item_status varchar(30) [
+    not null,
+    default: 'Open'
+  ]
+
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 }
 
+
 Table procurement.goods_receipts {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   receipt_number varchar(50) [not null, unique]
+
   purchase_order_id uuid [not null]
+
   received_by uuid [not null]
-  receipt_date timestamptz [not null, default: `now()`]
+
+  receipt_date timestamptz [
+    not null,
+    default: `now()`
+  ]
+
   delivery_note_number varchar(100)
-  receipt_status varchar(30) [not null, default: 'Pending', note: 'e.g. Pending, Partially Received, Completed']
+
+  receipt_status varchar(30) [
+    not null,
+    default: 'Pending',
+    note: 'Pending, Partially Received, or Completed'
+  ]
+
   remarks varchar(500)
+
   created_at timestamptz [not null, default: `now()`]
 }
 
+
 Table procurement.goods_receipt_items {
+
   id uuid [pk, not null, default: `gen_random_uuid()`]
+
   goods_receipt_id uuid [not null]
+
   purchase_order_item_id uuid [not null]
-  quantity_received decimal(15,2) [not null, note: 'Must be >= 0']
-  quantity_accepted decimal(15,2) [not null, note: 'Must be <= quantity_received']
-  quantity_rejected decimal(15,2) [not null, default: 0, note: 'Must be <= quantity_received']
+
+  quantity_received decimal(15,2) [
+    not null,
+    note: 'Must be >= 0'
+  ]
+
+  quantity_accepted decimal(15,2) [
+    not null,
+    note: 'Must be <= quantity_received'
+  ]
+
+  quantity_rejected decimal(15,2) [
+    not null,
+    default: 0,
+    note: 'Must be <= quantity_received'
+  ]
+
   rejection_reason varchar(500)
-  condition_status varchar(30) [not null, default: 'Good']
-  inspection_status varchar(30) [not null, default: 'Pending']
-  received_date timestamptz [not null, default: `now()`]
+
+  condition_status varchar(30) [
+    not null,
+    default: 'Good'
+  ]
+
+  inspection_status varchar(30) [
+    not null,
+    default: 'Pending'
+  ]
+
+  received_date timestamptz [
+    not null,
+    default: `now()`
+  ]
 }
 
-Ref: procurement.requisitions.company_id > organization.companies.id
-Ref: procurement.requisitions.requester_id > iam.company_users.id
-Ref: procurement.requisitions.department_id > organization.departments.id
-Ref: procurement.requisition_items.requisition_id > procurement.requisitions.id [delete: cascade]
-Ref: procurement.requisition_items.item_id > catalog.items.id
-Ref: procurement.approvals.requisition_id > procurement.requisitions.id [delete: cascade]
-Ref: procurement.approvals.approver_id > iam.company_users.id
-Ref: procurement.purchase_orders.company_id > organization.companies.id
-Ref: procurement.purchase_orders.requisition_id > procurement.requisitions.id
-Ref: procurement.purchase_orders.supplier_id > vendor.supplier_company_profiles.id
-Ref: procurement.purchase_orders.buyer_id > iam.company_users.id
-Ref: procurement.purchase_order_items.purchase_order_id > procurement.purchase_orders.id [delete: cascade]
-Ref: procurement.purchase_order_items.requisition_item_id > procurement.requisition_items.id
-Ref: procurement.purchase_order_items.item_id > catalog.items.id
-Ref: procurement.goods_receipts.purchase_order_id > procurement.purchase_orders.id
-Ref: procurement.goods_receipts.received_by > iam.company_users.id
-Ref: procurement.goods_receipt_items.goods_receipt_id > procurement.goods_receipts.id [delete: cascade]
-Ref: procurement.goods_receipt_items.purchase_order_item_id > procurement.purchase_order_items.id
 
-// Additional PostgreSQL checks to add in migrations.
-// CHECK (procurement.requisitions.status IN ('Draft','Submitted','Pending','Approved','Rejected','Cancelled','Completed'))
-// CHECK (procurement.requisitions.approval_status IN ('Pending','Approved','Rejected'))
-// CHECK (procurement.approvals.approval_status IN ('Pending','Approved','Rejected'))
-// CHECK (procurement.approvals.approval_level > 0)
-// CHECK (procurement.requisition_items.quantity_requested > 0)
-// CHECK (procurement.purchase_orders.status IN ('Draft','Submitted','Pending','Approved','Rejected','Cancelled','Completed'))
-// CHECK (procurement.purchase_orders.total_amount >= 0)
-// CHECK (procurement.purchase_order_items.quantity_ordered > 0)
-// CHECK (procurement.goods_receipt_items.quantity_received >= 0)
-// CHECK (procurement.goods_receipt_items.quantity_accepted <= procurement.goods_receipt_items.quantity_received)
-// CHECK (procurement.goods_receipt_items.quantity_rejected <= procurement.goods_receipt_items.quantity_received)
+// ============================================================
+// FOREIGN KEYS
+// ============================================================
+
+// -------------------------
+// Organization
+// -------------------------
+
+Ref: organization.departments.company_id
+  > organization.companies.id
+
+Ref: organization.departments.manager_company_user_id
+  > iam.company_users.id
+
+Ref: organization.locations.company_id
+  > organization.companies.id
+
+
+// -------------------------
+// IAM
+// -------------------------
+
+Ref: iam.company_users.company_id
+  > organization.companies.id
+
+Ref: iam.company_users.user_id
+  > iam.users.id
+
+Ref: iam.company_users.department_id
+  > organization.departments.id
+
+Ref: iam.user_roles.company_user_id
+  > iam.company_users.id [delete: cascade]
+
+Ref: iam.user_roles.role_id
+  > iam.roles.id [delete: cascade]
+
+Ref: iam.role_permissions.role_id
+  > iam.roles.id [delete: cascade]
+
+Ref: iam.role_permissions.permission_id
+  > iam.permissions.id [delete: cascade]
+
+
+// -------------------------
+// Catalog
+// -------------------------
+
+Ref: catalog.item_categories.company_id
+  > organization.companies.id
+
+Ref: catalog.item_categories.parent_id
+  > catalog.item_categories.id
+
+Ref: catalog.items.company_id
+  > organization.companies.id
+
+Ref: catalog.items.category_id
+  > catalog.item_categories.id
+
+Ref: catalog.items.unit_of_measure_id
+  > catalog.units_of_measure.id
+
+
+// -------------------------
+// Vendor
+// -------------------------
+
+Ref: vendor.supplier_company_profiles.supplier_id
+  > vendor.suppliers.id
+
+Ref: vendor.supplier_company_profiles.company_id
+  > organization.companies.id
+
+Ref: vendor.supplier_contacts.supplier_id
+  > vendor.suppliers.id [delete: cascade]
+
+Ref: vendor.supplier_documents.supplier_id
+  > vendor.suppliers.id [delete: cascade]
+
+Ref: vendor.supplier_documents.supplier_company_profile_id
+  > vendor.supplier_company_profiles.id
+
+Ref: vendor.supplier_documents.uploaded_by
+  > iam.users.id
+
+// Verification
+
+Ref: vendor.verification_cases.supplier_company_profile_id
+  > vendor.supplier_company_profiles.id
+
+Ref: vendor.verification_cases.opened_by
+  > iam.users.id
+
+Ref: vendor.verification_checks.verification_case_id
+  > vendor.verification_cases.id [delete: cascade]
+
+Ref: vendor.verification_checks.checked_by
+  > iam.users.id
+
+Ref: vendor.verification_evidence.verification_check_id
+  > vendor.verification_checks.id [delete: cascade]
+
+Ref: vendor.verification_evidence.supplier_document_id
+  > vendor.supplier_documents.id
+
+Ref: vendor.verification_evidence.uploaded_by
+  > iam.users.id
+
+Ref: vendor.verification_reviews.verification_case_id
+  > vendor.verification_cases.id [delete: cascade]
+
+Ref: vendor.verification_reviews.reviewer_user_id
+  > iam.users.id
+
+Ref: vendor.supplier_risk_assessments.verification_case_id
+  > vendor.verification_cases.id [delete: cascade]
+
+Ref: vendor.supplier_risk_assessments.assessed_by
+  > iam.users.id
+
+
+// -------------------------
+// Audit
+// -------------------------
+
+Ref: audit.audit_logs.company_id
+  > organization.companies.id
+
+Ref: audit.audit_logs.user_id
+  > iam.users.id
+
+
+// -------------------------
+// Procurement
+// -------------------------
+
+Ref: procurement.requisitions.company_id
+  > organization.companies.id
+
+Ref: procurement.requisitions.requester_id
+  > iam.company_users.id
+
+Ref: procurement.requisitions.department_id
+  > organization.departments.id
+
+Ref: procurement.requisition_items.requisition_id
+  > procurement.requisitions.id [delete: cascade]
+
+Ref: procurement.requisition_items.item_id
+  > catalog.items.id
+
+Ref: procurement.requisition_items.unit_of_measure_id
+  > catalog.units_of_measure.id
+
+Ref: procurement.approvals.requisition_id
+  > procurement.requisitions.id [delete: cascade]
+
+Ref: procurement.approvals.approver_id
+  > iam.company_users.id
+
+Ref: procurement.purchase_orders.company_id
+  > organization.companies.id
+
+Ref: procurement.purchase_orders.requisition_id
+  > procurement.requisitions.id
+
+Ref: procurement.purchase_orders.supplier_id
+  > vendor.supplier_company_profiles.id
+
+Ref: procurement.purchase_orders.buyer_id
+  > iam.company_users.id
+
+Ref: procurement.purchase_order_items.purchase_order_id
+  > procurement.purchase_orders.id [delete: cascade]
+
+Ref: procurement.purchase_order_items.requisition_item_id
+  > procurement.requisition_items.id
+
+Ref: procurement.purchase_order_items.item_id
+  > catalog.items.id
+
+Ref: procurement.purchase_order_items.unit_of_measure_id
+  > catalog.units_of_measure.id
+
+Ref: procurement.goods_receipts.purchase_order_id
+  > procurement.purchase_orders.id
+
+Ref: procurement.goods_receipts.received_by
+  > iam.company_users.id
+
+Ref: procurement.goods_receipt_items.goods_receipt_id
+  > procurement.goods_receipts.id [delete: cascade]
+
+Ref: procurement.goods_receipt_items.purchase_order_item_id
+  > procurement.purchase_order_items.id
+
+
+// ============================================================
+// ADDITIONAL POSTGRESQL CHECK CONSTRAINTS
+// ============================================================
+
+// Organization
+
+// CHECK (organization.companies.status
+//   IN ('active', 'suspended', 'inactive'))
+
+// CHECK (organization.locations.type
+//   IN ('office', 'warehouse', 'branch', 'site', 'factory', 'other'))
+
+
+// IAM
+
+// CHECK (iam.company_users.status
+//   IN ('active', 'suspended', 'inactive'))
+
+
+// Catalog
+
+// CHECK (catalog.items.item_type
+//   IN ('material', 'service', 'asset'))
+
+
+// Vendor
+
+// CHECK (vendor.suppliers.status
+//   IN ('active', 'inactive', 'suspended'))
+
+// CHECK (vendor.supplier_company_profiles.relationship_status
+//   IN ('prospective', 'active', 'suspended', 'blocked', 'inactive'))
+
+// CHECK (vendor.supplier_company_profiles.onboarding_status
+//   IN ('pending', 'in_progress', 'completed', 'rejected'))
+
+// CHECK (vendor.supplier_documents.status
+//   IN ('pending', 'valid', 'expired', 'rejected'))
+
+// CHECK (vendor.verification_cases.status
+//   IN ('open', 'in_progress', 'approved', 'rejected', 'expired', 'cancelled'))
+
+// CHECK (vendor.verification_checks.status
+//   IN ('pending', 'in_progress', 'passed', 'failed', 'waived'))
+
+// CHECK (vendor.verification_reviews.decision
+//   IN ('approved', 'rejected', 'requires_changes'))
+
+// CHECK (vendor.supplier_risk_assessments.risk_level
+//   IN ('low', 'medium', 'high', 'critical'))
+
+// CHECK (vendor.supplier_risk_assessments.risk_score
+//   >= 0 AND risk_score <= 100)
+
+
+// Procurement
+
+// CHECK (procurement.requisitions.status
+//   IN ('Draft', 'Submitted', 'Pending', 'Approved',
+//       'Rejected', 'Cancelled', 'Completed'))
+
+// CHECK (procurement.requisitions.approval_status
+//   IN ('Pending', 'Approved', 'Rejected'))
+
+// CHECK (procurement.requisitions.total_estimated_amount
+//   IS NULL OR total_estimated_amount >= 0)
+
+// CHECK (procurement.requisition_items.quantity_requested
+//   > 0)
+
+// CHECK (procurement.requisition_items.estimated_unit_price
+//   IS NULL OR estimated_unit_price >= 0)
+
+// CHECK (procurement.requisition_items.estimated_total_price
+//   IS NULL OR estimated_total_price >= 0)
+
+// CHECK (procurement.approvals.approval_status
+//   IN ('Pending', 'Approved', 'Rejected'))
+
+// CHECK (procurement.approvals.approval_level
+//   > 0)
+
+// CHECK (procurement.purchase_orders.total_amount
+//   >= 0)
+
+// CHECK (procurement.purchase_order_items.quantity_ordered
+//   > 0)
+
+// CHECK (procurement.purchase_order_items.unit_price
+//   >= 0)
+
+// CHECK (procurement.purchase_order_items.line_total
+//   >= 0)
+
+// CHECK (procurement.goods_receipt_items.quantity_received
+//   >= 0)
+
+// CHECK (procurement.goods_receipt_items.quantity_accepted
+//   >= 0)
+
+// CHECK (procurement.goods_receipt_items.quantity_rejected
+//   >= 0)
+
+// CHECK (procurement.goods_receipt_items.quantity_accepted
+//   <= procurement.goods_receipt_items.quantity_received)
+
+// CHECK (procurement.goods_receipt_items.quantity_rejected
+//   <= procurement.goods_receipt_items.quantity_received)
+
+// CHECK (
+//   procurement.goods_receipt_items.quantity_accepted +
+//   procurement.goods_receipt_items.quantity_rejected
+//   <= procurement.goods_receipt_items.quantity_received
+// )
