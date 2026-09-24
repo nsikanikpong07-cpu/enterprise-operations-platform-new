@@ -5,36 +5,561 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  schemas  = ["audit", "catalog", "iam", "organization", "procurement", "vendor"]
+}
 
+model audit_logs {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id  String?    @db.Uuid
+  user_id     String?    @db.Uuid
+  action      String     @db.VarChar(100)
+  entity_type String     @db.VarChar(100)
+  entity_id   String?    @db.Uuid
+  old_values  Json?
+  new_values  Json?
+  ip_address  String?    @db.Inet
+  user_agent  String?
+  created_at  DateTime   @default(now()) @db.Timestamptz(6)
+  companies   companies? @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users       users?     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([company_id, created_at], map: "idx_audit_logs_company_created")
+  @@index([entity_type, entity_id], map: "idx_audit_logs_entity")
+  @@schema("audit")
+}
+
+model item_categories {
+  id                    String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id            String            @db.Uuid
+  parent_id             String?           @db.Uuid
+  name                  String            @db.VarChar(150)
+  description           String?
+  created_at            DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime          @default(now()) @db.Timestamptz(6)
+  companies             companies         @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  item_categories       item_categories?  @relation("item_categoriesToitem_categories", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_item_categories item_categories[] @relation("item_categoriesToitem_categories")
+  items                 items[]
+
+  @@unique([company_id, name], map: "uq_item_categories_company_name")
+  @@schema("catalog")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model companies {
-  company_id          String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                String
-  created_at          DateTime              @default(now()) @db.Timestamptz(6)
-  company_memberships company_memberships[]
+model items {
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id           String                 @db.Uuid
+  category_id          String?                @db.Uuid
+  unit_of_measure_id   String                 @db.Uuid
+  sku                  String?                @db.VarChar(100)
+  name                 String                 @db.VarChar(255)
+  description          String?
+  item_type            String                 @default("material") @db.VarChar(30)
+  is_stockable         Boolean                @default(true)
+  is_active            Boolean                @default(true)
+  created_at           DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime               @default(now()) @db.Timestamptz(6)
+  item_categories      item_categories?       @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  companies            companies              @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  units_of_measure     units_of_measure       @relation(fields: [unit_of_measure_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  purchase_order_items purchase_order_items[]
+  requisition_items    requisition_items[]
+
+  @@unique([company_id, sku], map: "uq_items_company_sku")
+  @@schema("catalog")
 }
 
-model company_memberships {
-  membership_id String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  company_id    String    @db.Uuid
-  user_id       String    @db.Uuid
-  is_active     Boolean   @default(true)
-  created_at    DateTime  @default(now()) @db.Timestamptz(6)
-  companies     companies @relation(fields: [company_id], references: [company_id], onDelete: NoAction, onUpdate: NoAction)
-  users         users     @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+model units_of_measure {
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                 String                 @unique @db.VarChar(20)
+  name                 String                 @db.VarChar(100)
+  created_at           DateTime               @default(now()) @db.Timestamptz(6)
+  items                items[]
+  purchase_order_items purchase_order_items[]
+  requisition_items    requisition_items[]
 
-  @@unique([company_id, user_id], map: "company_memberships_company_user_unique")
+  @@schema("catalog")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model company_users {
+  id                                                             String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id                                                     String            @db.Uuid
+  user_id                                                        String            @db.Uuid
+  department_id                                                  String?           @db.Uuid
+  employee_number                                                String?           @db.VarChar(100)
+  job_title                                                      String?           @db.VarChar(150)
+  status                                                         String            @default("active") @db.VarChar(30)
+  created_at                                                     DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at                                                     DateTime          @default(now()) @db.Timestamptz(6)
+  companies                                                      companies         @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  departments_company_users_department_idTodepartments           departments?      @relation("company_users_department_idTodepartments", fields: [department_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users                                                          users             @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_roles                                                     user_roles[]
+  departments_departments_manager_company_user_idTocompany_users departments[]     @relation("departments_manager_company_user_idTocompany_users")
+  approvals                                                      approvals[]
+  goods_receipts                                                 goods_receipts[]
+  purchase_orders                                                purchase_orders[]
+  requisitions                                                   requisitions[]
+
+  @@unique([company_id, user_id], map: "uq_company_users_company_user")
+  @@unique([company_id, employee_number], map: "uq_company_users_employee_number")
+  @@schema("iam")
+}
+
+model permissions {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String             @unique @db.VarChar(150)
+  description      String?
+  created_at       DateTime           @default(now()) @db.Timestamptz(6)
+  role_permissions role_permissions[]
+
+  @@schema("iam")
+}
+
+model role_permissions {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  role_id       String      @db.Uuid
+  permission_id String      @db.Uuid
+  created_at    DateTime    @default(now()) @db.Timestamptz(6)
+  permissions   permissions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  roles         roles       @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([role_id, permission_id], map: "uq_role_permissions_role_permission")
+  @@schema("iam")
+}
+
+model roles {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String             @unique @db.VarChar(100)
+  description      String?
+  created_at       DateTime           @default(now()) @db.Timestamptz(6)
+  role_permissions role_permissions[]
+  user_roles       user_roles[]
+
+  @@schema("iam")
+}
+
+model user_roles {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_user_id String        @db.Uuid
+  role_id         String        @db.Uuid
+  created_at      DateTime      @default(now()) @db.Timestamptz(6)
+  company_users   company_users @relation(fields: [company_user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  roles           roles         @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([company_user_id, role_id], map: "uq_user_roles_user_role")
+  @@schema("iam")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model users {
-  user_id             String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  full_name           String
-  email               String                @unique
-  password_hash       String
-  is_active           Boolean               @default(true)
+  id                        String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                     String                      @unique @db.VarChar(255)
+  password_hash             String
+  first_name                String                      @db.VarChar(100)
+  last_name                 String                      @db.VarChar(100)
+  phone                     String?                     @db.VarChar(50)
+  status                    String                      @default("active") @db.VarChar(30)
+  last_login_at             DateTime?                   @db.Timestamptz(6)
+  created_at                DateTime                    @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime                    @default(now()) @db.Timestamptz(6)
+  audit_logs                audit_logs[]
+  company_users             company_users[]
+  supplier_documents        supplier_documents[]
+  supplier_risk_assessments supplier_risk_assessments[]
+  verification_cases        verification_cases[]
+  verification_checks       verification_checks[]
+  verification_evidence     verification_evidence[]
+  verification_reviews      verification_reviews[]
+
+  @@schema("iam")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model companies {
+  id                        String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                      String                      @db.VarChar(255)
+  legal_name                String?                     @db.VarChar(255)
+  registration_number       String?                     @db.VarChar(100)
+  tax_identification_number String?                     @db.VarChar(100)
+  industry                  String?                     @db.VarChar(100)
+  country_code              String                      @default("NG") @db.Char(2)
+  default_currency          String                      @default("NGN") @db.Char(3)
+  timezone                  String                      @default("Africa/Lagos") @db.VarChar(100)
+  status                    String                      @default("active") @db.VarChar(30)
+  created_at                DateTime                    @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime                    @default(now()) @db.Timestamptz(6)
+  audit_logs                audit_logs[]
+  item_categories           item_categories[]
+  items                     items[]
+  company_users             company_users[]
+  departments               departments[]
+  locations                 locations[]
+  purchase_orders           purchase_orders[]
+  requisitions              requisitions[]
+  supplier_company_profiles supplier_company_profiles[]
+
+  @@index([status], map: "idx_companies_status")
+  @@schema("organization")
+}
+
+model departments {
+  id                                                               String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id                                                       String          @db.Uuid
+  name                                                             String          @db.VarChar(150)
+  code                                                             String?         @db.VarChar(50)
+  manager_company_user_id                                          String?         @db.Uuid
+  created_at                                                       DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at                                                       DateTime        @default(now()) @db.Timestamptz(6)
+  company_users_company_users_department_idTodepartments           company_users[] @relation("company_users_department_idTodepartments")
+  companies                                                        companies       @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  company_users_departments_manager_company_user_idTocompany_users company_users?  @relation("departments_manager_company_user_idTocompany_users", fields: [manager_company_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_departments_manager")
+  requisitions                                                     requisitions[]
+
+  @@unique([company_id, code], map: "uq_departments_company_code")
+  @@unique([company_id, name], map: "uq_departments_company_name")
+  @@schema("organization")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model locations {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id   String    @db.Uuid
+  name         String    @db.VarChar(150)
+  code         String    @db.VarChar(50)
+  type         String    @default("office") @db.VarChar(50)
+  address      String?
+  city         String?   @db.VarChar(100)
+  state        String?   @db.VarChar(100)
+  country_code String?   @db.Char(2)
+  is_active    Boolean   @default(true)
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime  @default(now()) @db.Timestamptz(6)
+  companies    companies @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([company_id, code], map: "uq_locations_company_code")
+  @@schema("organization")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model approvals {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requisition_id   String        @db.Uuid
+  approver_id      String        @db.Uuid
+  approval_level   Int
+  approval_status  String        @default("Pending") @db.VarChar(30)
+  approval_date    DateTime?     @db.Timestamptz(6)
+  comments         String?       @db.VarChar(500)
+  rejection_reason String?       @db.VarChar(500)
+  created_at       DateTime      @default(now()) @db.Timestamptz(6)
+  company_users    company_users @relation(fields: [approver_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  requisitions     requisitions  @relation(fields: [requisition_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([requisition_id, approval_level], map: "uq_approvals_requisition_level")
+  @@schema("procurement")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model goods_receipt_items {
+  id                     String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  goods_receipt_id       String               @db.Uuid
+  purchase_order_item_id String               @db.Uuid
+  quantity_received      Decimal              @db.Decimal(15, 2)
+  quantity_accepted      Decimal              @db.Decimal(15, 2)
+  quantity_rejected      Decimal              @default(0) @db.Decimal(15, 2)
+  rejection_reason       String?              @db.VarChar(500)
+  condition_status       String               @default("Good") @db.VarChar(30)
+  inspection_status      String               @default("Pending") @db.VarChar(30)
+  received_date          DateTime             @default(now()) @db.Timestamptz(6)
+  goods_receipts         goods_receipts       @relation(fields: [goods_receipt_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  purchase_order_items   purchase_order_items @relation(fields: [purchase_order_item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("procurement")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model goods_receipts {
+  id                   String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  receipt_number       String                @unique @db.VarChar(50)
+  purchase_order_id    String                @db.Uuid
+  received_by          String                @db.Uuid
+  receipt_date         DateTime              @default(now()) @db.Timestamptz(6)
+  delivery_note_number String?               @db.VarChar(100)
+  receipt_status       String                @default("Pending") @db.VarChar(30)
+  remarks              String?               @db.VarChar(500)
+  created_at           DateTime              @default(now()) @db.Timestamptz(6)
+  goods_receipt_items  goods_receipt_items[]
+  purchase_orders      purchase_orders       @relation(fields: [purchase_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  company_users        company_users         @relation(fields: [received_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("procurement")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model purchase_order_items {
+  id                  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  purchase_order_id   String                @db.Uuid
+  requisition_item_id String?               @db.Uuid
+  item_id             String                @db.Uuid
+  description         String                @db.VarChar(500)
+  quantity_ordered    Decimal               @db.Decimal(15, 2)
+  unit_of_measure_id  String                @db.Uuid
+  unit_price          Decimal               @db.Decimal(15, 2)
+  line_total          Decimal               @db.Decimal(15, 2)
+  delivery_date       DateTime?             @db.Date
+  item_status         String                @default("Open") @db.VarChar(30)
   created_at          DateTime              @default(now()) @db.Timestamptz(6)
-  company_memberships company_memberships[]
+  updated_at          DateTime              @default(now()) @db.Timestamptz(6)
+  goods_receipt_items goods_receipt_items[]
+  items               items                 @relation(fields: [item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  purchase_orders     purchase_orders       @relation(fields: [purchase_order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  requisition_items   requisition_items?    @relation(fields: [requisition_item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  units_of_measure    units_of_measure      @relation(fields: [unit_of_measure_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("procurement")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model purchase_orders {
+  id                        String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id                String                    @db.Uuid
+  po_number                 String                    @db.VarChar(50)
+  requisition_id            String                    @db.Uuid
+  supplier_id               String                    @db.Uuid
+  buyer_id                  String                    @db.Uuid
+  order_date                DateTime                  @default(dbgenerated("CURRENT_DATE")) @db.Date
+  expected_delivery_date    DateTime?                 @db.Date
+  currency                  String                    @default("NGN") @db.Char(3)
+  total_amount              Decimal                   @default(0) @db.Decimal(15, 2)
+  status                    String                    @default("Issued") @db.VarChar(30)
+  payment_terms             String?                   @db.VarChar(100)
+  created_at                DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime                  @default(now()) @db.Timestamptz(6)
+  goods_receipts            goods_receipts[]
+  purchase_order_items      purchase_order_items[]
+  company_users             company_users             @relation(fields: [buyer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  companies                 companies                 @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  requisitions              requisitions              @relation(fields: [requisition_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  supplier_company_profiles supplier_company_profiles @relation(fields: [supplier_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([company_id, po_number], map: "uq_purchase_orders_company_po_number")
+  @@index([status], map: "idx_purchase_orders_status")
+  @@schema("procurement")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model requisition_items {
+  id                    String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requisition_id        String                 @db.Uuid
+  item_id               String                 @db.Uuid
+  description           String                 @db.VarChar(500)
+  quantity_requested    Decimal                @db.Decimal(15, 2)
+  unit_of_measure_id    String                 @db.Uuid
+  estimated_unit_price  Decimal?               @db.Decimal(15, 2)
+  estimated_total_price Decimal?               @db.Decimal(15, 2)
+  required_date         DateTime?              @db.Date
+  item_status           String                 @default("Pending") @db.VarChar(30)
+  created_at            DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime               @default(now()) @db.Timestamptz(6)
+  purchase_order_items  purchase_order_items[]
+  items                 items                  @relation(fields: [item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  requisitions          requisitions           @relation(fields: [requisition_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  units_of_measure      units_of_measure       @relation(fields: [unit_of_measure_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("procurement")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model requisitions {
+  id                     String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id             String              @db.Uuid
+  requisition_number     String              @db.VarChar(50)
+  requester_id           String              @db.Uuid
+  department_id          String?             @db.Uuid
+  request_date           DateTime            @default(dbgenerated("CURRENT_DATE")) @db.Date
+  required_date          DateTime?           @db.Date
+  status                 String              @default("Draft") @db.VarChar(30)
+  justification          String              @db.VarChar(500)
+  approval_status        String              @default("Pending") @db.VarChar(30)
+  total_estimated_amount Decimal?            @db.Decimal(15, 2)
+  created_at             DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime            @default(now()) @db.Timestamptz(6)
+  approvals              approvals[]
+  purchase_orders        purchase_orders[]
+  requisition_items      requisition_items[]
+  companies              companies           @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  departments            departments?        @relation(fields: [department_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  company_users          company_users       @relation(fields: [requester_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([company_id, requisition_number], map: "uq_requisitions_company_number")
+  @@index([status], map: "idx_requisitions_status")
+  @@schema("procurement")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model supplier_company_profiles {
+  id                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  supplier_id         String               @db.Uuid
+  company_id          String               @db.Uuid
+  supplier_code       String?              @db.VarChar(100)
+  relationship_status String               @default("prospective") @db.VarChar(30)
+  onboarding_status   String               @default("pending") @db.VarChar(30)
+  notes               String?
+  created_at          DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime             @default(now()) @db.Timestamptz(6)
+  purchase_orders     purchase_orders[]
+  companies           companies            @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  suppliers           suppliers            @relation(fields: [supplier_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  supplier_documents  supplier_documents[]
+  verification_cases  verification_cases[]
+
+  @@unique([company_id, supplier_code], map: "uq_supplier_company_profiles_company_code")
+  @@unique([supplier_id, company_id], map: "uq_supplier_company_profiles_supplier_company")
+  @@schema("vendor")
+}
+
+model supplier_contacts {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  supplier_id String    @db.Uuid
+  name        String    @db.VarChar(200)
+  email       String?   @db.VarChar(255)
+  phone       String?   @db.VarChar(50)
+  position    String?   @db.VarChar(150)
+  is_primary  Boolean   @default(false)
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime  @default(now()) @db.Timestamptz(6)
+  suppliers   suppliers @relation(fields: [supplier_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("vendor")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model supplier_documents {
+  id                          String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  supplier_id                 String                     @db.Uuid
+  supplier_company_profile_id String?                    @db.Uuid
+  document_type               String                     @db.VarChar(100)
+  document_number             String?                    @db.VarChar(150)
+  file_url                    String
+  file_hash                   String?                    @db.VarChar(128)
+  issued_at                   DateTime?                  @db.Date
+  expires_at                  DateTime?                  @db.Date
+  status                      String                     @default("pending") @db.VarChar(30)
+  uploaded_by                 String?                    @db.Uuid
+  created_at                  DateTime                   @default(now()) @db.Timestamptz(6)
+  updated_at                  DateTime                   @default(now()) @db.Timestamptz(6)
+  supplier_company_profiles   supplier_company_profiles? @relation(fields: [supplier_company_profile_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  suppliers                   suppliers                  @relation(fields: [supplier_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                       users?                     @relation(fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  verification_evidence       verification_evidence[]
+
+  @@schema("vendor")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model supplier_risk_assessments {
+  id                   String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  verification_case_id String             @db.Uuid
+  risk_level           String             @db.VarChar(30)
+  risk_score           Decimal?           @db.Decimal(5, 2)
+  rationale            String?
+  assessed_by          String             @db.Uuid
+  assessed_at          DateTime           @default(now()) @db.Timestamptz(6)
+  expires_at           DateTime?          @db.Timestamptz(6)
+  users                users              @relation(fields: [assessed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  verification_cases   verification_cases @relation(fields: [verification_case_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("vendor")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model suppliers {
+  id                        String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  legal_name                String                      @db.VarChar(255)
+  trading_name              String?                     @db.VarChar(255)
+  registration_number       String?                     @db.VarChar(100)
+  tax_identification_number String?                     @db.VarChar(100)
+  supplier_type             String?                     @db.VarChar(50)
+  country_code              String?                     @db.Char(2)
+  status                    String                      @default("active") @db.VarChar(30)
+  created_at                DateTime                    @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime                    @default(now()) @db.Timestamptz(6)
+  supplier_company_profiles supplier_company_profiles[]
+  supplier_contacts         supplier_contacts[]
+  supplier_documents        supplier_documents[]
+
+  @@schema("vendor")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model verification_cases {
+  id                          String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  supplier_company_profile_id String                      @db.Uuid
+  case_number                 String                      @unique @db.VarChar(100)
+  verification_type           String                      @default("initial") @db.VarChar(50)
+  status                      String                      @default("open") @db.VarChar(30)
+  opened_by                   String                      @db.Uuid
+  opened_at                   DateTime                    @default(now()) @db.Timestamptz(6)
+  completed_at                DateTime?                   @db.Timestamptz(6)
+  expires_at                  DateTime?                   @db.Timestamptz(6)
+  created_at                  DateTime                    @default(now()) @db.Timestamptz(6)
+  updated_at                  DateTime                    @default(now()) @db.Timestamptz(6)
+  supplier_risk_assessments   supplier_risk_assessments[]
+  users                       users                       @relation(fields: [opened_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  supplier_company_profiles   supplier_company_profiles   @relation(fields: [supplier_company_profile_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  verification_checks         verification_checks[]
+  verification_reviews        verification_reviews[]
+
+  @@schema("vendor")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model verification_checks {
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  verification_case_id  String                  @db.Uuid
+  check_type            String                  @db.VarChar(100)
+  name                  String                  @db.VarChar(150)
+  status                String                  @default("pending") @db.VarChar(30)
+  is_required           Boolean                 @default(true)
+  checked_by            String?                 @db.Uuid
+  checked_at            DateTime?               @db.Timestamptz(6)
+  notes                 String?
+  created_at            DateTime                @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime                @default(now()) @db.Timestamptz(6)
+  users                 users?                  @relation(fields: [checked_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  verification_cases    verification_cases      @relation(fields: [verification_case_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  verification_evidence verification_evidence[]
+
+  @@schema("vendor")
+}
+
+model verification_evidence {
+  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  verification_check_id String              @db.Uuid
+  supplier_document_id  String?             @db.Uuid
+  evidence_type         String              @db.VarChar(100)
+  file_url              String?
+  description           String?
+  uploaded_by           String              @db.Uuid
+  created_at            DateTime            @default(now()) @db.Timestamptz(6)
+  supplier_documents    supplier_documents? @relation(fields: [supplier_document_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users                 users               @relation(fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  verification_checks   verification_checks @relation(fields: [verification_check_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("vendor")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model verification_reviews {
+  id                   String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  verification_case_id String             @db.Uuid
+  reviewer_user_id     String             @db.Uuid
+  decision             String             @db.VarChar(30)
+  comments             String?
+  reviewed_at          DateTime           @default(now()) @db.Timestamptz(6)
+  users                users              @relation(fields: [reviewer_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  verification_cases   verification_cases @relation(fields: [verification_case_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("vendor")
 }
