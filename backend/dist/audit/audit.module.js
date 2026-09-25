@@ -6,13 +6,17 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuditController } from './controllers/audit.controller.js';
 import { AuditLog } from './entities/audit-log.entity.js';
+import { AuditService } from './providers/audit.service.js';
 let AuditModule = class AuditModule {
 };
 AuditModule = __decorate([
     Module({
         imports: [TypeOrmModule.forFeature([AuditLog])],
-        exports: [TypeOrmModule],
+        controllers: [AuditController],
+        providers: [AuditService],
+        exports: [TypeOrmModule, AuditService],
     })
 ], AuditModule);
 export { AuditModule };
