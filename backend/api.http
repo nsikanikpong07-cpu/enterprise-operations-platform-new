@@ -1,0 +1,10 @@
+@baseUrl = http://localhost:3000
+
+### Base route
+GET {{baseUrl}}/
+
+### Health check
+GET {{baseUrl}}/health
+
+### Database health check
+GET {{baseUrl}}/health/database
