@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import {
   AssignRoleDto,
@@ -14,6 +15,8 @@ import {
   CreateRoleDto,
   GrantPermissionDto,
   UpdateRoleDto,
+  AddCompanyUserDto,
+  UpdateCompanyUserDto,
 } from '../dto/role.dto.js';
 import { RolesService } from '../providers/roles.service.js';
 
@@ -75,4 +78,40 @@ export class RolesController {
   rolesForCompanyUser(@Param('companyUserId', ParseUUIDPipe) id: string) {
     return this.roles.rolesForCompanyUser(id);
   }
+
+  // Company users / memberships
+
+@Post('company-users')
+addCompanyUser(@Body() dto: AddCompanyUserDto) {
+  return this.roles.addCompanyUser(dto);
+}
+
+@Get('company-users')
+findCompanyUsers(
+  @Query('companyId', ParseUUIDPipe) companyId: string,
+) {
+  return this.roles.findCompanyUsers(companyId);
+}
+
+@Get('company-users/:id')
+findCompanyUser(
+  @Param('id', ParseUUIDPipe) id: string,
+) {
+  return this.roles.findCompanyUser(id);
+}
+
+@Patch('company-users/:id')
+updateCompanyUser(
+  @Param('id', ParseUUIDPipe) id: string,
+  @Body() dto: UpdateCompanyUserDto,
+) {
+  return this.roles.updateCompanyUser(id, dto);
+}
+
+@Delete('company-users/:id')
+removeCompanyUser(
+  @Param('id', ParseUUIDPipe) id: string,
+) {
+  return this.roles.removeCompanyUser(id);
+}
 }

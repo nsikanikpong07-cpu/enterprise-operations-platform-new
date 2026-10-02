@@ -37,9 +37,9 @@ export class Location extends BaseEntity {
   @Column({ type: 'varchar', length: 100, nullable: true })
   state?: string;
 
-  @Column({ type: 'char', length: 2, nullable: true })
+  @Column({ name: 'country_code', type: 'char', length: 2, nullable: true })
   countryCode?: string;
 
-  @Column({ type: 'boolean', nullable: false, default: true })
+  @Column({ name: 'is_active', type: 'boolean', nullable: false, default: true })
   isActive!: boolean;
 }
