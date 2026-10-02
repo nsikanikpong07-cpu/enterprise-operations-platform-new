@@ -7,9 +7,11 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Check, Column, Entity, Index } from 'typeorm';
-import { BaseEntity } from '../../common/entities/base.entity.js';
-let Company = class Company extends BaseEntity {
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn, } from 'typeorm';
+let Company = class Company {
+    id;
+    createdAt;
+    updatedAt;
     name;
     legalName;
     registrationNumber;
@@ -21,45 +23,55 @@ let Company = class Company extends BaseEntity {
     status;
 };
 __decorate([
-    Column({ type: 'varchar', length: 255, nullable: false }),
+    PrimaryGeneratedColumn('uuid'),
+    __metadata("design:type", String)
+], Company.prototype, "id", void 0);
+__decorate([
+    CreateDateColumn({ name: 'created_at' }),
+    __metadata("design:type", Date)
+], Company.prototype, "createdAt", void 0);
+__decorate([
+    UpdateDateColumn({ name: 'updated_at' }),
+    __metadata("design:type", Date)
+], Company.prototype, "updatedAt", void 0);
+__decorate([
+    Column(),
     __metadata("design:type", String)
 ], Company.prototype, "name", void 0);
 __decorate([
-    Column({ type: 'varchar', length: 255, nullable: true }),
+    Column({ name: 'legal_name', nullable: true }),
     __metadata("design:type", String)
 ], Company.prototype, "legalName", void 0);
 __decorate([
-    Column({ type: 'varchar', length: 100, nullable: true }),
+    Column({ name: 'registration_number', nullable: true }),
     __metadata("design:type", String)
 ], Company.prototype, "registrationNumber", void 0);
 __decorate([
-    Column({ type: 'varchar', length: 100, nullable: true }),
+    Column({ name: 'tax_identification_number', nullable: true }),
     __metadata("design:type", String)
 ], Company.prototype, "taxIdentificationNumber", void 0);
 __decorate([
-    Column({ type: 'varchar', length: 100, nullable: true }),
+    Column({ nullable: true }),
     __metadata("design:type", String)
 ], Company.prototype, "industry", void 0);
 __decorate([
-    Column({ type: 'char', length: 2, nullable: false, default: 'NG' }),
+    Column({ name: 'country_code', nullable: true }),
     __metadata("design:type", String)
 ], Company.prototype, "countryCode", void 0);
 __decorate([
-    Column({ type: 'char', length: 3, nullable: false, default: 'NGN' }),
+    Column({ name: 'default_currency', nullable: true }),
     __metadata("design:type", String)
 ], Company.prototype, "defaultCurrency", void 0);
 __decorate([
-    Column({ type: 'varchar', length: 100, nullable: false, default: 'Africa/Lagos' }),
+    Column({ nullable: true }),
     __metadata("design:type", String)
 ], Company.prototype, "timezone", void 0);
 __decorate([
-    Index(),
-    Column({ type: 'varchar', length: 30, nullable: false, default: 'active' }),
+    Column({ default: 'Active' }),
     __metadata("design:type", String)
 ], Company.prototype, "status", void 0);
 Company = __decorate([
-    Entity({ schema: 'organization', name: 'companies' }),
-    Check(`status IN ('active', 'suspended', 'inactive')`)
+    Entity({ schema: 'organization', name: 'companies' })
 ], Company);
 export { Company };
 //# sourceMappingURL=company.entity.js.map

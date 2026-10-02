@@ -34,15 +34,15 @@ __decorate([
 ], CompanyUser.prototype, "user", void 0);
 __decorate([
     Index(),
-    Column({ type: 'uuid', nullable: true }),
+    Column({ name: 'department_id', type: 'uuid', nullable: true }),
     __metadata("design:type", String)
 ], CompanyUser.prototype, "departmentId", void 0);
 __decorate([
-    Column({ type: 'varchar', length: 100, nullable: true }),
+    Column({ name: 'employee_number', type: 'varchar', length: 100, nullable: true }),
     __metadata("design:type", String)
 ], CompanyUser.prototype, "employeeNumber", void 0);
 __decorate([
-    Column({ type: 'varchar', length: 150, nullable: true }),
+    Column({ name: 'job_title', type: 'varchar', length: 150, nullable: true }),
     __metadata("design:type", String)
 ], CompanyUser.prototype, "jobTitle", void 0);
 __decorate([

@@ -24,15 +24,15 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "email", void 0);
 __decorate([
-    Column({ type: 'text', nullable: false }),
+    Column({ name: 'password_hash', type: 'text', nullable: false }),
     __metadata("design:type", String)
 ], User.prototype, "passwordHash", void 0);
 __decorate([
-    Column({ type: 'varchar', length: 100, nullable: false }),
+    Column({ name: 'first_name', type: 'varchar', length: 100 }),
     __metadata("design:type", String)
 ], User.prototype, "firstName", void 0);
 __decorate([
-    Column({ type: 'varchar', length: 100, nullable: false }),
+    Column({ name: 'last_name', type: 'varchar', length: 100 }),
     __metadata("design:type", String)
 ], User.prototype, "lastName", void 0);
 __decorate([
@@ -44,7 +44,7 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "status", void 0);
 __decorate([
-    Column({ type: 'timestamptz', nullable: true }),
+    Column({ name: 'last_login_at', type: 'timestamptz', nullable: true }),
     __metadata("design:type", Date)
 ], User.prototype, "lastLoginAt", void 0);
 User = __decorate([

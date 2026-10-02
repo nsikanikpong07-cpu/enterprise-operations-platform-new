@@ -28,14 +28,14 @@ export class CompanyUser extends BaseEntity {
   user!: User;
 
   @Index()
-  @Column({ type: 'uuid', nullable: true })
-  departmentId?: string;
+  @Column({ name: 'department_id', type: 'uuid', nullable: true })
+departmentId?: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  employeeNumber?: string;
+@Column({ name: 'employee_number', type: 'varchar', length: 100, nullable: true })
+employeeNumber?: string;
 
-  @Column({ type: 'varchar', length: 150, nullable: true })
-  jobTitle?: string;
+@Column({ name: 'job_title', type: 'varchar', length: 150, nullable: true })
+jobTitle?: string;
 
   @Column({ type: 'varchar', length: 30, nullable: false, default: 'active' })
   status!: string;

@@ -8,21 +8,21 @@ export class User extends BaseEntity {
   @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
   email!: string;
 
-  @Column({ type: 'text', nullable: false })
+  @Column({ name: 'password_hash', type: 'text', nullable: false })
   passwordHash!: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: false })
-  firstName!: string;
+@Column({ name: 'first_name', type: 'varchar', length: 100 })
+firstName!: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: false })
-  lastName!: string;
-
+@Column({ name: 'last_name', type: 'varchar', length: 100 })
+lastName!: string;
   @Column({ type: 'varchar', length: 50, nullable: true })
   phone?: string;
 
   @Column({ type: 'varchar', length: 30, nullable: false, default: 'active' })
   status!: string;
 
-  @Column({ type: 'timestamptz', nullable: true })
-  lastLoginAt?: Date;
+ 
+@Column({ name: 'last_login_at', type: 'timestamptz', nullable: true })
+lastLoginAt?: Date;
 }

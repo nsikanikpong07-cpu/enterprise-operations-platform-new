@@ -1,4 +1,4 @@
-import { AssignRoleDto, CreatePermissionDto, CreateRoleDto, GrantPermissionDto, UpdateRoleDto } from '../dto/role.dto.js';
+import { AssignRoleDto, CreatePermissionDto, CreateRoleDto, GrantPermissionDto, UpdateRoleDto, AddCompanyUserDto, UpdateCompanyUserDto } from '../dto/role.dto.js';
 import { RolesService } from '../providers/roles.service.js';
 export declare class RolesController {
     private readonly roles;
@@ -14,4 +14,9 @@ export declare class RolesController {
     rolePermissions(id: string): Promise<import("../entities/role-permission.entity.js").RolePermission[]>;
     assignRole(dto: AssignRoleDto): Promise<import("../entities/user-role.entity.js").UserRole>;
     rolesForCompanyUser(id: string): Promise<import("../entities/user-role.entity.js").UserRole[]>;
+    addCompanyUser(dto: AddCompanyUserDto): Promise<import("../entities/company-user.entity.js").CompanyUser>;
+    findCompanyUsers(companyId: string): Promise<import("../entities/company-user.entity.js").CompanyUser[]>;
+    findCompanyUser(id: string): Promise<import("../entities/company-user.entity.js").CompanyUser>;
+    updateCompanyUser(id: string, dto: UpdateCompanyUserDto): Promise<import("../entities/company-user.entity.js").CompanyUser>;
+    removeCompanyUser(id: string): Promise<void>;
 }

@@ -18,11 +18,11 @@ __decorate([
     __metadata("design:type", String)
 ], BaseEntity.prototype, "id", void 0);
 __decorate([
-    CreateDateColumn({ type: 'timestamptz', default: () => 'NOW()' }),
+    CreateDateColumn({ name: 'created_at', type: 'timestamptz', default: () => 'NOW()' }),
     __metadata("design:type", Date)
 ], BaseEntity.prototype, "createdAt", void 0);
 __decorate([
-    UpdateDateColumn({ type: 'timestamptz', default: () => 'NOW()' }),
+    UpdateDateColumn({ name: 'updated_at', type: 'timestamptz', default: () => 'NOW()' }),
     __metadata("design:type", Date)
 ], BaseEntity.prototype, "updatedAt", void 0);
 //# sourceMappingURL=base.entity.js.map

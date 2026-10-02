@@ -26,15 +26,27 @@ __decorate([
     __metadata("design:type", Company)
 ], Department.prototype, "company", void 0);
 __decorate([
-    Column({ type: 'varchar', length: 150, nullable: false }),
+    Column({
+        name: 'name',
+        type: 'varchar',
+        length: 150,
+        nullable: false,
+    }),
     __metadata("design:type", String)
 ], Department.prototype, "name", void 0);
 __decorate([
-    Column({ type: 'varchar', length: 50, nullable: true }),
+    Column({
+        name: 'code',
+        type: 'varchar',
+        length: 50,
+        nullable: true,
+    }),
     __metadata("design:type", String)
 ], Department.prototype, "code", void 0);
 __decorate([
-    ManyToOne(() => CompanyUser, { nullable: true }),
+    ManyToOne(() => CompanyUser, {
+        nullable: true,
+    }),
     JoinColumn({ name: 'manager_company_user_id' }),
     __metadata("design:type", CompanyUser)
 ], Department.prototype, "manager", void 0);

@@ -52,11 +52,11 @@ __decorate([
     __metadata("design:type", String)
 ], Location.prototype, "state", void 0);
 __decorate([
-    Column({ type: 'char', length: 2, nullable: true }),
+    Column({ name: 'country_code', type: 'char', length: 2, nullable: true }),
     __metadata("design:type", String)
 ], Location.prototype, "countryCode", void 0);
 __decorate([
-    Column({ type: 'boolean', nullable: false, default: true }),
+    Column({ name: 'is_active', type: 'boolean', nullable: false, default: true }),
     __metadata("design:type", Boolean)
 ], Location.prototype, "isActive", void 0);
 Location = __decorate([

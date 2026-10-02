@@ -6,6 +6,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Company } from '../organization/entities/company.entity.js';
+import { Department } from '../organization/entities/department.entity.js';
 import { IamController } from './controllers/iam.controller.js';
 import { RolesController } from './controllers/roles.controller.js';
 import { UsersController } from './controllers/users.controller.js';
@@ -31,16 +33,27 @@ IamModule = __decorate([
                 Permission,
                 UserRole,
                 RolePermission,
+                Company,
+                Department,
             ]),
         ],
-        controllers: [IamController, UsersController, RolesController],
+        controllers: [
+            IamController,
+            UsersController,
+            RolesController,
+        ],
         providers: [
             IamService,
             UsersService,
             RolesService,
             passwordHasherProvider,
         ],
-        exports: [TypeOrmModule, IamService, UsersService, RolesService],
+        exports: [
+            TypeOrmModule,
+            IamService,
+            UsersService,
+            RolesService,
+        ],
     })
 ], IamModule);
 export { IamModule };

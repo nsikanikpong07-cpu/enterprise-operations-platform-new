@@ -31,7 +31,7 @@ __decorate([
     __metadata("design:type", Role)
 ], UserRole.prototype, "role", void 0);
 __decorate([
-    CreateDateColumn({ type: 'timestamptz', default: () => 'NOW()' }),
+    CreateDateColumn({ name: 'created_at', type: 'timestamptz', default: () => 'NOW()' }),
     __metadata("design:type", Date)
 ], UserRole.prototype, "createdAt", void 0);
 UserRole = __decorate([

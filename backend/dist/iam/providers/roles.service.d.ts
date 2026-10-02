@@ -1,15 +1,23 @@
 import { Repository } from 'typeorm';
-import { AssignRoleDto, CreatePermissionDto, CreateRoleDto, GrantPermissionDto, UpdateRoleDto } from '../dto/role.dto.js';
+import { AddCompanyUserDto, AssignRoleDto, CreatePermissionDto, CreateRoleDto, GrantPermissionDto, UpdateCompanyUserDto, UpdateRoleDto } from '../dto/role.dto.js';
+import { Company } from '../../organization/entities/company.entity.js';
+import { Department } from '../../organization/entities/department.entity.js';
+import { CompanyUser } from '../entities/company-user.entity.js';
 import { Permission } from '../entities/permission.entity.js';
 import { RolePermission } from '../entities/role-permission.entity.js';
 import { Role } from '../entities/role.entity.js';
 import { UserRole } from '../entities/user-role.entity.js';
+import { User } from '../entities/user.entity.js';
 export declare class RolesService {
     private readonly roles;
     private readonly permissions;
     private readonly userRoles;
     private readonly rolePermissions;
-    constructor(roles: Repository<Role>, permissions: Repository<Permission>, userRoles: Repository<UserRole>, rolePermissions: Repository<RolePermission>);
+    private readonly companyUsers;
+    private readonly companies;
+    private readonly users;
+    private readonly departments;
+    constructor(roles: Repository<Role>, permissions: Repository<Permission>, userRoles: Repository<UserRole>, rolePermissions: Repository<RolePermission>, companyUsers: Repository<CompanyUser>, companies: Repository<Company>, users: Repository<User>, departments: Repository<Department>);
     findAll(): Promise<Role[]>;
     findOne(id: string): Promise<Role>;
     create(dto: CreateRoleDto): Promise<Role>;
@@ -21,4 +29,9 @@ export declare class RolesService {
     rolePermissionsFor(roleId: string): Promise<RolePermission[]>;
     assignRole(dto: AssignRoleDto): Promise<UserRole>;
     rolesForCompanyUser(companyUserId: string): Promise<UserRole[]>;
+    addCompanyUser(dto: AddCompanyUserDto): Promise<CompanyUser>;
+    findCompanyUsers(companyId: string): Promise<CompanyUser[]>;
+    findCompanyUser(id: string): Promise<CompanyUser>;
+    updateCompanyUser(id: string, dto: UpdateCompanyUserDto): Promise<CompanyUser>;
+    removeCompanyUser(id: string): Promise<void>;
 }

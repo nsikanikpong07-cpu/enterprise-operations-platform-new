@@ -1,34 +1,46 @@
-import { Check, Column, Entity, Index } from 'typeorm';
-import { BaseEntity } from '../../common/entities/base.entity.js';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity({ schema: 'organization', name: 'companies' })
-@Check(`status IN ('active', 'suspended', 'inactive')`)
-export class Company extends BaseEntity {
-  @Column({ type: 'varchar', length: 255, nullable: false })
+export class Company {
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt!: Date;
+
+  @Column()
   name!: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ name: 'legal_name', nullable: true })
   legalName?: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
+  @Column({ name: 'registration_number', nullable: true })
   registrationNumber?: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
+  @Column({ name: 'tax_identification_number', nullable: true })
   taxIdentificationNumber?: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
+  @Column({ nullable: true })
   industry?: string;
 
-  @Column({ type: 'char', length: 2, nullable: false, default: 'NG' })
-  countryCode!: string;
+  @Column({ name: 'country_code', nullable: true })
+  countryCode?: string;
 
-  @Column({ type: 'char', length: 3, nullable: false, default: 'NGN' })
-  defaultCurrency!: string;
+  @Column({ name: 'default_currency', nullable: true })
+  defaultCurrency?: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: false, default: 'Africa/Lagos' })
-  timezone!: string;
+  @Column({ nullable: true })
+  timezone?: string;
 
-  @Index()
-  @Column({ type: 'varchar', length: 30, nullable: false, default: 'active' })
+  @Column({ default: 'Active' })
   status!: string;
 }

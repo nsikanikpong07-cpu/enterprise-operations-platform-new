@@ -10,8 +10,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, } from '@nestjs/common';
-import { AssignRoleDto, CreatePermissionDto, CreateRoleDto, GrantPermissionDto, UpdateRoleDto, } from '../dto/role.dto.js';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Query, } from '@nestjs/common';
+import { AssignRoleDto, CreatePermissionDto, CreateRoleDto, GrantPermissionDto, UpdateRoleDto, AddCompanyUserDto, UpdateCompanyUserDto, } from '../dto/role.dto.js';
 import { RolesService } from '../providers/roles.service.js';
 let RolesController = class RolesController {
     roles;
@@ -50,6 +50,21 @@ let RolesController = class RolesController {
     }
     rolesForCompanyUser(id) {
         return this.roles.rolesForCompanyUser(id);
+    }
+    addCompanyUser(dto) {
+        return this.roles.addCompanyUser(dto);
+    }
+    findCompanyUsers(companyId) {
+        return this.roles.findCompanyUsers(companyId);
+    }
+    findCompanyUser(id) {
+        return this.roles.findCompanyUser(id);
+    }
+    updateCompanyUser(id, dto) {
+        return this.roles.updateCompanyUser(id, dto);
+    }
+    removeCompanyUser(id) {
+        return this.roles.removeCompanyUser(id);
     }
 };
 __decorate([
@@ -128,6 +143,42 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], RolesController.prototype, "rolesForCompanyUser", null);
+__decorate([
+    Post('company-users'),
+    __param(0, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [AddCompanyUserDto]),
+    __metadata("design:returntype", void 0)
+], RolesController.prototype, "addCompanyUser", null);
+__decorate([
+    Get('company-users'),
+    __param(0, Query('companyId', ParseUUIDPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], RolesController.prototype, "findCompanyUsers", null);
+__decorate([
+    Get('company-users/:id'),
+    __param(0, Param('id', ParseUUIDPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], RolesController.prototype, "findCompanyUser", null);
+__decorate([
+    Patch('company-users/:id'),
+    __param(0, Param('id', ParseUUIDPipe)),
+    __param(1, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, UpdateCompanyUserDto]),
+    __metadata("design:returntype", void 0)
+], RolesController.prototype, "updateCompanyUser", null);
+__decorate([
+    Delete('company-users/:id'),
+    __param(0, Param('id', ParseUUIDPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], RolesController.prototype, "removeCompanyUser", null);
 RolesController = __decorate([
     Controller('iam'),
     __metadata("design:paramtypes", [RolesService])

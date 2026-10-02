@@ -23,6 +23,6 @@ export class RolePermission {
   @JoinColumn({ name: 'permission_id' })
   permission!: Permission;
 
-  @CreateDateColumn({ type: 'timestamptz', default: () => 'NOW()' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz', default: () => 'NOW()' })
   createdAt!: Date;
 }

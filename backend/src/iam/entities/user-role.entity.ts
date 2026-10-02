@@ -23,6 +23,6 @@ export class UserRole {
   @JoinColumn({ name: 'role_id' })
   role!: Role;
 
-  @CreateDateColumn({ type: 'timestamptz', default: () => 'NOW()' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz', default: () => 'NOW()' })
   createdAt!: Date;
 }
