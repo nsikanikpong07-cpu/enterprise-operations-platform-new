@@ -17,9 +17,9 @@ export class SupplierContact extends BaseEntity {
   @Column({ type: 'varchar', length: 50, nullable: true })
   phone?: string;
 
-  @Column({ type: 'varchar', length: 150, nullable: true })
+  @Column({ name: 'position', type: 'varchar', length: 150, nullable: true })
   position?: string;
 
-  @Column({ type: 'boolean', nullable: false, default: false })
+  @Column({name: 'is_primary', type: 'boolean', nullable: false, default: false })
   isPrimary!: boolean;
 }

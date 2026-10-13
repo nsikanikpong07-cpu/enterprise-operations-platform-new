@@ -18,15 +18,15 @@ export class SupplierCompanyProfile extends BaseEntity {
   company!: Company;
 
   @Index()
-  @Column({ type: 'varchar', length: 100, nullable: true })
+  @Column({name: 'supplier_code', type: 'varchar', length: 100, nullable: true })
   supplierCode?: string;
 
-  @Column({ type: 'varchar', length: 30, nullable: false, default: 'prospective' })
+  @Column({name: 'relationship_status', type: 'varchar', length: 30, nullable: false, default: 'prospective' })
   relationshipStatus!: string;
 
-  @Column({ type: 'varchar', length: 30, nullable: false, default: 'pending' })
+  @Column({name: 'onboarding_status', type: 'varchar', length: 30, nullable: false, default: 'pending' })
   onboardingStatus!: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({name: 'notes', type: 'text', nullable: true })
   notes?: string;
 }

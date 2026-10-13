@@ -11,22 +11,22 @@ export class SupplierRiskAssessment extends BaseEntity {
   @JoinColumn({ name: 'verification_case_id' })
   verificationCase!: VerificationCase;
 
-  @Column({ type: 'varchar', length: 30, nullable: false })
+  @Column({name: 'risk_level', type: 'varchar', length: 30, nullable: false })
   riskLevel!: string;
 
-  @Column({ type: 'numeric', precision: 5, scale: 2, nullable: true })
+  @Column({name: 'risk_score', type: 'numeric', precision: 5, scale: 2, nullable: true })
   riskScore?: number;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({name: 'rationale', type: 'text', nullable: true })
   rationale?: string;
 
   @ManyToOne(() => User, { nullable: false })
   @JoinColumn({ name: 'assessed_by' })
   assessedBy!: User;
 
-  @Column({ type: 'timestamptz', nullable: false, default: () => 'NOW()' })
+  @Column({name: 'assessed_at', type: 'timestamptz', nullable: false, default: () => 'NOW()' })
   assessedAt!: Date;
 
-  @Column({ type: 'timestamptz', nullable: true })
+  @Column({name: 'expires_at', type: 'timestamptz', nullable: true })
   expiresAt?: Date;
 }

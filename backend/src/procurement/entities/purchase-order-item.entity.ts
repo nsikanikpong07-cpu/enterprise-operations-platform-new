@@ -25,22 +25,22 @@ export class PurchaseOrderItem extends BaseEntity {
   @Column({ type: 'varchar', length: 500, nullable: false })
   description!: string;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, nullable: false })
+  @Column({ name: 'quantity_ordered', type: 'decimal', precision: 15, scale: 2, nullable: false })
   quantityOrdered!: number;
 
   @ManyToOne(() => UnitOfMeasure, { nullable: false })
   @JoinColumn({ name: 'unit_of_measure_id' })
   unitOfMeasure!: UnitOfMeasure;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, nullable: false })
+  @Column({ name: 'unit_price', type: 'decimal', precision: 15, scale: 2, nullable: false })
   unitPrice!: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, nullable: false })
+  @Column({ name: 'line_total', type: 'decimal', precision: 15, scale: 2, nullable: false })
   lineTotal!: number;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ name: 'delivery_date', type: 'date', nullable: true })
   deliveryDate?: Date;
 
-  @Column({ type: 'varchar', length: 30, nullable: false, default: 'Open' })
+  @Column({ name: 'item_status', type: 'varchar', length: 30, nullable: false, default: 'Open' })
   itemStatus!: string;
 }

@@ -27,6 +27,11 @@ export class SuppliersController {
     return this.suppliers.findAll();
   }
 
+  @Get('profiles')
+  profilesForCompany(@Query('companyId', ParseUUIDPipe) companyId: string) {
+    return this.suppliers.profilesForCompany(companyId);
+  }
+  
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.suppliers.findOne(id);
@@ -47,10 +52,6 @@ export class SuppliersController {
     return this.suppliers.onboard(dto);
   }
 
-  @Get('profiles')
-  profilesForCompany(@Query('companyId', ParseUUIDPipe) companyId: string) {
-    return this.suppliers.profilesForCompany(companyId);
-  }
 
   @Patch('profiles/:id')
   updateProfile(

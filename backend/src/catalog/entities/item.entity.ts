@@ -32,7 +32,7 @@ export class Item extends BaseEntity {
   unitOfMeasure!: UnitOfMeasure;
 
   @Index()
-  @Column({ type: 'varchar', length: 100, nullable: true })
+  @Column({ name: 'sku', type: 'varchar', length: 100, nullable: true })
   sku?: string;
 
   @Column({ type: 'varchar', length: 255, nullable: false })
@@ -41,12 +41,12 @@ export class Item extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   description?: string;
 
-  @Column({ type: 'varchar', length: 30, nullable: false, default: 'material' })
+  @Column({ name: 'item_type', type: 'varchar', length: 30, nullable: false, default: 'material' })
   itemType!: string;
 
-  @Column({ type: 'boolean', nullable: false, default: true })
+  @Column({ name: 'is_stockable', type: 'boolean', nullable: false, default: true })
   isStockable!: boolean;
 
-  @Column({ type: 'boolean', nullable: false, default: true })
+  @Column({ name: 'is_active', type: 'boolean', nullable: false, default: true })
   isActive!: boolean;
 }

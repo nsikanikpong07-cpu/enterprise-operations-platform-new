@@ -15,25 +15,25 @@ export class SupplierDocument extends BaseEntity {
   @JoinColumn({ name: 'supplier_company_profile_id' })
   companyProfile?: SupplierCompanyProfile;
 
-  @Column({ type: 'varchar', length: 100, nullable: false })
+  @Column({ name: 'document_type', type: 'varchar', length: 100, nullable: false })
   documentType!: string;
 
-  @Column({ type: 'varchar', length: 150, nullable: true })
+  @Column({ name: 'document_number', type: 'varchar', length: 150, nullable: true })
   documentNumber?: string;
 
-  @Column({ type: 'text', nullable: false })
+  @Column({ name: 'file_url', type: 'text', nullable: false })
   fileUrl!: string;
 
-  @Column({ type: 'varchar', length: 128, nullable: true })
+  @Column({ name: 'file_hash', type: 'varchar', length: 128, nullable: true })
   fileHash?: string;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ name: 'issued_at', type: 'date', nullable: true })
   issuedAt?: Date;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ name: 'expires_at', type: 'date', nullable: true })
   expiresAt?: Date;
 
-  @Column({ type: 'varchar', length: 30, nullable: false, default: 'pending' })
+  @Column({ name: 'status', type: 'varchar', length: 30, nullable: false, default: 'pending' })
   status!: string;
 
   @ManyToOne(() => User, { nullable: true })

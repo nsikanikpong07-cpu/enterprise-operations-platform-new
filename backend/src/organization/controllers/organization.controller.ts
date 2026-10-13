@@ -62,7 +62,7 @@ export class OrganizationController {
     return this.organization.createDepartment(dto);
   }
 
-  @Patch('departments/:id')
+  @Patch('departments/:id')  
   updateDepartment(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateDepartmentDto,

@@ -1,80 +1,67 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CompanyUser } from '../entities/company-user.entity.js';
-import { User } from '../entities/user.entity.js';
-import {
-  AddCompanyUserDto,
-  UpdateCompanyUserDto,
-} from '../dto/role.dto.js';
-import { CreateUserDto, UpdateUserDto } from '../dto/user.dto.js';
-import { PASSWORD_HASHER } from './password-hasher.provider.js';
-import type { PasswordHasher } from './password-hasher.provider.js';
+import { CreateStaffDto } from "../dto/create-staff.dto.js";
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+
+import { AddCompanyUserDto, UpdateCompanyUserDto } from "../dto/role.dto.js";
+import { UpdateUserDto } from "../dto/user.dto.js";
+
+import { CompanyUser } from "../entities/company-user.entity.js";
+import { User } from "../entities/user.entity.js";
+import { IamService } from "./iam.service.js";
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User) private readonly users: Repository<User>,
-    @InjectRepository(CompanyUser)
-    private readonly companyUsers: Repository<CompanyUser>,
-    @Inject(PASSWORD_HASHER) private readonly hasher: PasswordHasher,
+    @InjectRepository(User)
+    private readonly users: Repository<User>,
+
+    private readonly iam: IamService,
   ) {}
 
-  findAll(): Promise<User[]> {
-    return this.users.find();
+  // Delegate user operations to the shared IAM implementation.
+  // Password hashing and response sanitization live in one place.
+
+  findAll(
+    companyId: string,
+  ): Promise<Omit<User, "passwordHash" | "authVersion">[]> {
+    return this.iam.findStaffUsers(companyId);
   }
 
-  async findOne(id: string): Promise<User> {
-    const user = await this.users.findOneBy({ id });
-    if (!user) throw new NotFoundException(`User ${id} not found`);
-    return user;
+  findOne(id: string): Promise<Omit<User, "passwordHash" | "authVersion">> {
+    return this.iam.findUser(id);
   }
 
-  create(dto: CreateUserDto): Promise<User> {
-    const { password, ...rest } = dto;
-    return this.users.save(
-      this.users.create({ ...rest, passwordHash: this.hasher.hash(password) }),
-    );
+  create(dto: CreateStaffDto) {
+    return this.iam.createStaff(dto);
   }
 
-  async update(id: string, dto: UpdateUserDto): Promise<User> {
-    const user = await this.findOne(id);
-    Object.assign(user, dto);
-    return this.users.save(user);
+  update(
+    id: string,
+    dto: UpdateUserDto,
+  ): Promise<Omit<User, "passwordHash" | "authVersion">> {
+    return this.iam.updateUser(id, dto);
   }
 
   async remove(id: string): Promise<void> {
-    const user = await this.findOne(id);
-    await this.users.remove(user);
+    // Deactivation preserves history and checks the last-admin rule.
+    await this.iam.deactivateUser(id);
   }
 
+  // Membership endpoints now use the same validation as IamService.
+
   addToCompany(dto: AddCompanyUserDto): Promise<CompanyUser> {
-    const { companyId, userId, departmentId, ...rest } = dto;
-    return this.companyUsers.save(
-      this.companyUsers.create({
-        ...rest,
-        company: { id: companyId },
-        user: { id: userId },
-        departmentId,
-      }),
-    );
+    return this.iam.addCompanyUser(dto);
   }
 
   findCompanyUsers(companyId: string): Promise<CompanyUser[]> {
-    return this.companyUsers.find({
-      where: { company: { id: companyId } },
-      relations: { user: true },
-    });
+    return this.iam.findCompanyUsers(companyId);
   }
 
-  async updateCompanyUser(
+  updateCompanyUser(
     id: string,
     dto: UpdateCompanyUserDto,
   ): Promise<CompanyUser> {
-    const membership = await this.companyUsers.findOneBy({ id });
-    if (!membership)
-      throw new NotFoundException(`CompanyUser ${id} not found`);
-    Object.assign(membership, dto);
-    return this.companyUsers.save(membership);
+    return this.iam.updateCompanyUser(id, dto);
   }
 }

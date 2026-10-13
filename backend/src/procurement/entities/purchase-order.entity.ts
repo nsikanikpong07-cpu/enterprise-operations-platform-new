@@ -1,4 +1,12 @@
-import { Check, Column, Entity, Index, JoinColumn, ManyToOne, Unique } from 'typeorm';
+import {
+  Check,
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  Unique,
+} from 'typeorm';
 import { BaseEntity } from '../../common/entities/base.entity.js';
 import { Company } from '../../organization/entities/company.entity.js';
 import { CompanyUser } from '../../iam/entities/company-user.entity.js';
@@ -7,15 +15,24 @@ import { Requisition } from './requisition.entity.js';
 
 @Entity({ schema: 'procurement', name: 'purchase_orders' })
 @Unique(['company', 'poNumber'])
-@Check(`status IN ('Draft', 'Submitted', 'Pending', 'Approved', 'Rejected', 'Cancelled', 'Completed')`)
+@Check(
+  `status IN ('Draft', 'Submitted', 'Pending', 'Approved', 'Rejected', 'Cancelled', 'Completed')`,
+)
 @Check(`total_amount >= 0`)
 export class PurchaseOrder extends BaseEntity {
-  @ManyToOne(() => Company, { nullable: false, onDelete: 'CASCADE' })
+  @ManyToOne(() => Company, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'company_id' })
   company!: Company;
 
-  @Index({ unique: true })
-  @Column({ type: 'varchar', length: 50, nullable: false, unique: true })
+  @Column({
+    name: 'po_number',
+    type: 'varchar',
+    length: 50,
+    nullable: false,
+  })
   poNumber!: string;
 
   @ManyToOne(() => Requisition, { nullable: false })
@@ -30,22 +47,55 @@ export class PurchaseOrder extends BaseEntity {
   @JoinColumn({ name: 'buyer_id' })
   buyer!: CompanyUser;
 
-  @Column({ type: 'date', nullable: false, default: () => 'CURRENT_DATE' })
+  @Column({
+    name: 'order_date',
+    type: 'date',
+    nullable: false,
+    default: () => 'CURRENT_DATE',
+  })
   orderDate!: Date;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({
+    name: 'expected_delivery_date',
+    type: 'date',
+    nullable: true,
+  })
   expectedDeliveryDate?: Date;
 
-  @Column({ type: 'char', length: 3, nullable: false, default: 'NGN' })
+  @Column({
+    name: 'currency',
+    type: 'char',
+    length: 3,
+    nullable: false,
+    default: 'NGN',
+  })
   currency!: string;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, nullable: false, default: 0 })
+  @Column({
+    name: 'total_amount',
+    type: 'decimal',
+    precision: 15,
+    scale: 2,
+    nullable: false,
+    default: 0,
+  })
   totalAmount!: number;
 
   @Index()
-  @Column({ type: 'varchar', length: 30, nullable: false, default: 'Issued' })
+  @Column({
+    name: 'status',
+    type: 'varchar',
+    length: 30,
+    nullable: false,
+    default: 'Draft',
+  })
   status!: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
+  @Column({
+    name: 'payment_terms',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
   paymentTerms?: string;
 }

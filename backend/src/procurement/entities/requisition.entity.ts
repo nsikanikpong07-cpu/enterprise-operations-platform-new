@@ -15,7 +15,7 @@ export class Requisition extends BaseEntity {
   company!: Company;
 
   @Index({ unique: true })
-  @Column({ type: 'varchar', length: 50, nullable: false, unique: true })
+  @Column({name: 'requisition_number', type: 'varchar', length: 50, nullable: false, unique: true })
   requisitionNumber!: string;
 
   @ManyToOne(() => CompanyUser, { nullable: false })
@@ -26,10 +26,10 @@ export class Requisition extends BaseEntity {
   @JoinColumn({ name: 'department_id' })
   department?: Department;
 
-  @Column({ type: 'date', nullable: false, default: () => 'CURRENT_DATE' })
+  @Column({ name: 'request_date', type: 'date', nullable: false, default: () => 'CURRENT_DATE' })
   requestDate!: Date;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ name: 'required_date', type: 'date', nullable: true })
   requiredDate?: Date;
 
   @Index()
@@ -39,9 +39,9 @@ export class Requisition extends BaseEntity {
   @Column({ type: 'varchar', length: 500, nullable: false })
   justification!: string;
 
-  @Column({ type: 'varchar', length: 30, nullable: false, default: 'Pending' })
+  @Column({ name: 'approval_status', type: 'varchar', length: 30, nullable: false, default: 'Pending' })
   approvalStatus!: string;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, nullable: true })
+  @Column({ name: 'total_estimated_amount', type: 'decimal', precision: 15, scale: 2, nullable: true })
   totalEstimatedAmount?: number;
 }

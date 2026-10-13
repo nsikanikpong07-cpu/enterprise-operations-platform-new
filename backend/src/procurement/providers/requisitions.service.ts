@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
+
 import {
   CreateRequisitionDto,
   UpdateRequisitionDto,
@@ -19,7 +20,10 @@ export class RequisitionsService {
   findAll(companyId: string): Promise<Requisition[]> {
     return this.requisitions.find({
       where: { company: { id: companyId } },
-      relations: { requester: true, department: true },
+      relations: {
+        requester: true,
+        department: true,
+      },
       order: { createdAt: 'DESC' },
     });
   }
@@ -27,52 +31,103 @@ export class RequisitionsService {
   async findOne(id: string): Promise<Requisition> {
     const requisition = await this.requisitions.findOne({
       where: { id },
-      relations: { requester: true, department: true },
+      relations: {
+        requester: true,
+        department: true,
+      },
     });
-    if (!requisition)
+
+    if (!requisition) {
       throw new NotFoundException(`Requisition ${id} not found`);
+    }
+
     return requisition;
   }
 
-  itemsFor(id: string): Promise<RequisitionItem[]> {
+  async itemsFor(id: string): Promise<RequisitionItem[]> {
+    await this.findOne(id);
+
     return this.dataSource.getRepository(RequisitionItem).find({
       where: { requisition: { id } },
-      relations: { item: true, unitOfMeasure: true },
+      relations: {
+        item: true,
+        unitOfMeasure: true,
+      },
     });
   }
 
   create(dto: CreateRequisitionDto): Promise<Requisition> {
-    const { companyId, requesterId, departmentId, items, ...rest } = dto;
+    const {
+      companyId,
+      requesterId,
+      departmentId,
+      items,
+      ...rest
+    } = dto;
+
     return this.dataSource.transaction(async (manager) => {
+      const preparedItems = items.map(
+        ({ itemId, unitOfMeasureId, ...fields }) => ({
+          ...fields,
+          item: { id: itemId },
+          unitOfMeasure: { id: unitOfMeasureId },
+          estimatedTotalPrice:
+            fields.estimatedUnitPrice != null
+              ? Math.round(
+                  fields.estimatedUnitPrice *
+                    fields.quantityRequested *
+                    100,
+                ) / 100
+              : undefined,
+        }),
+      );
+
+      const allItemsPriced = preparedItems.every(
+        (item) => item.estimatedTotalPrice != null,
+      );
+
+      const totalEstimatedAmount = allItemsPriced
+        ? Math.round(
+            preparedItems.reduce(
+              (sum, item) => sum + (item.estimatedTotalPrice ?? 0),
+              0,
+            ) * 100,
+          ) / 100
+        : undefined;
+
       const requisition = await manager.save(
         manager.create(Requisition, {
           ...rest,
           company: { id: companyId },
           requester: { id: requesterId },
-          department: departmentId ? { id: departmentId } : undefined,
+          department: departmentId
+            ? { id: departmentId }
+            : undefined,
+          totalEstimatedAmount,
         }),
       );
+
       await manager.save(
-        items.map((item) =>
+        preparedItems.map((item) =>
           manager.create(RequisitionItem, {
             ...item,
             requisition: { id: requisition.id },
-            item: { id: item.itemId },
-            unitOfMeasure: { id: item.unitOfMeasureId },
-            estimatedTotalPrice:
-              item.estimatedUnitPrice != null
-                ? item.estimatedUnitPrice * item.quantityRequested
-                : undefined,
           }),
         ),
       );
+
       return requisition;
     });
   }
 
-  async update(id: string, dto: UpdateRequisitionDto): Promise<Requisition> {
+  async update(
+    id: string,
+    dto: UpdateRequisitionDto,
+  ): Promise<Requisition> {
     const requisition = await this.findOne(id);
+
     Object.assign(requisition, dto);
+
     return this.requisitions.save(requisition);
   }
 }

@@ -14,13 +14,13 @@ export class VerificationEvidence extends BaseEntity {
   @JoinColumn({ name: 'supplier_document_id' })
   supplierDocument?: SupplierDocument;
 
-  @Column({ type: 'varchar', length: 100, nullable: false })
+  @Column({ name: 'evidence_type', type: 'varchar', length: 100, nullable: false })
   evidenceType!: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ name: 'file_url', type: 'text', nullable: true })
   fileUrl?: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ name: 'description', type: 'text', nullable: true })
   description?: string;
 
   @ManyToOne(() => User, { nullable: false })

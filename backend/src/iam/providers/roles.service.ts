@@ -1,10 +1,6 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 
 import {
   AddCompanyUserDto,
@@ -14,26 +10,20 @@ import {
   GrantPermissionDto,
   UpdateCompanyUserDto,
   UpdateRoleDto,
-} from '../dto/role.dto.js';
+} from "../dto/role.dto.js";
 
-import { Company } from '../../organization/entities/company.entity.js';
-import { Department } from '../../organization/entities/department.entity.js';
-
-import { CompanyUser } from '../entities/company-user.entity.js';
-import { Permission } from '../entities/permission.entity.js';
-import { RolePermission } from '../entities/role-permission.entity.js';
-import { Role } from '../entities/role.entity.js';
-import { UserRole } from '../entities/user-role.entity.js';
-import { User } from '../entities/user.entity.js';
+import { CompanyUser } from "../entities/company-user.entity.js";
+import { Permission } from "../entities/permission.entity.js";
+import { RolePermission } from "../entities/role-permission.entity.js";
+import { Role } from "../entities/role.entity.js";
+import { UserRole } from "../entities/user-role.entity.js";
+import { IamService } from "./iam.service.js";
 
 @Injectable()
 export class RolesService {
   constructor(
     @InjectRepository(Role)
     private readonly roles: Repository<Role>,
-
-    @InjectRepository(Permission)
-    private readonly permissions: Repository<Permission>,
 
     @InjectRepository(UserRole)
     private readonly userRoles: Repository<UserRole>,
@@ -44,111 +34,48 @@ export class RolesService {
     @InjectRepository(CompanyUser)
     private readonly companyUsers: Repository<CompanyUser>,
 
-    @InjectRepository(Company)
-    private readonly companies: Repository<Company>,
-
-    @InjectRepository(User)
-    private readonly users: Repository<User>,
-
-    @InjectRepository(Department)
-    private readonly departments: Repository<Department>,
+    private readonly iam: IamService,
   ) {}
 
-  // Roles
+  // Company-owned roles
 
-  findAll(): Promise<Role[]> {
-    return this.roles.find();
+  findAll(companyId: string): Promise<Role[]> {
+    return this.iam.findRoles(companyId);
   }
 
-  async findOne(id: string): Promise<Role> {
-    const role = await this.roles.findOneBy({ id });
-
-    if (!role) {
-      throw new NotFoundException(`Role ${id} not found`);
-    }
-
-    return role;
+  findOne(id: string): Promise<Role> {
+    return this.iam.findRole(id);
   }
 
   create(dto: CreateRoleDto): Promise<Role> {
-    return this.roles.save(this.roles.create(dto));
+    return this.iam.createRole(dto);
   }
 
-  async update(
-    id: string,
-    dto: UpdateRoleDto,
-  ): Promise<Role> {
-    const role = await this.findOne(id);
-
-    Object.assign(role, dto);
-
-    return this.roles.save(role);
+  update(id: string, dto: UpdateRoleDto): Promise<Role> {
+    return this.iam.updateRole(id, dto);
   }
 
   async remove(id: string): Promise<void> {
-    const role = await this.findOne(id);
-
-    await this.roles.remove(role);
+    await this.iam.removeRole(id);
   }
 
-  // Permissions
+  // Platform permissions and grants
 
-  createPermission(
-    dto: CreatePermissionDto,
-  ): Promise<Permission> {
-    const permission = this.permissions.create(dto);
-
-    return this.permissions.save(permission);
+  createPermission(dto: CreatePermissionDto): Promise<Permission> {
+    return this.iam.createPermission(dto);
   }
 
   findPermissions(): Promise<Permission[]> {
-    return this.permissions.find();
+    return this.iam.findPermissions();
   }
 
-  async grantPermission(
-    dto: GrantPermissionDto,
-  ): Promise<RolePermission> {
-    const role = await this.roles.findOneBy({
-      id: dto.roleId,
-    });
-
-    if (!role) {
-      throw new NotFoundException('Role not found');
-    }
-
-    const permission = await this.permissions.findOneBy({
-      id: dto.permissionId,
-    });
-
-    if (!permission) {
-      throw new NotFoundException('Permission not found');
-    }
-
-    const existingGrant =
-      await this.rolePermissions.findOne({
-        where: {
-          role: { id: dto.roleId },
-          permission: { id: dto.permissionId },
-        },
-      });
-
-    if (existingGrant) {
-      throw new ConflictException(
-        'Permission has already been granted to this role',
-      );
-    }
-
-    const grant = this.rolePermissions.create({
-      role,
-      permission,
-    });
-
-    return this.rolePermissions.save(grant);
+  grantPermission(dto: GrantPermissionDto): Promise<RolePermission> {
+    return this.iam.grantPermission(dto);
   }
 
-  rolePermissionsFor(
-    roleId: string,
-  ): Promise<RolePermission[]> {
+  async rolePermissionsFor(roleId: string): Promise<RolePermission[]> {
+    await this.findOne(roleId);
+
     return this.rolePermissions.find({
       where: {
         role: { id: roleId },
@@ -159,213 +86,60 @@ export class RolesService {
     });
   }
 
-  // User roles
+  // Company membership role assignments
 
-  async assignRole(
-    dto: AssignRoleDto,
-  ): Promise<UserRole> {
-    const companyUser = await this.companyUsers.findOneBy({
-      id: dto.companyUserId,
-    });
-
-    if (!companyUser) {
-      throw new NotFoundException(
-        'Company membership not found',
-      );
-    }
-
-    const role = await this.roles.findOneBy({
-      id: dto.roleId,
-    });
-
-    if (!role) {
-      throw new NotFoundException('Role not found');
-    }
-
-    const existingAssignment =
-      await this.userRoles.findOne({
-        where: {
-          companyUser: { id: dto.companyUserId },
-          role: { id: dto.roleId },
-        },
-      });
-
-    if (existingAssignment) {
-      throw new ConflictException(
-        'Role is already assigned to this company user',
-      );
-    }
-
-    const assignment = this.userRoles.create({
-      companyUser,
-      role,
-    });
-
-    return this.userRoles.save(assignment);
+  assignRole(dto: AssignRoleDto): Promise<UserRole> {
+    return this.iam.assignRole(dto);
   }
 
-  rolesForCompanyUser(
-    companyUserId: string,
-  ): Promise<UserRole[]> {
+  async rolesForCompanyUser(companyUserId: string): Promise<UserRole[]> {
+    const membership = await this.iam.findCompanyUser(companyUserId);
+
     return this.userRoles.find({
       where: {
         companyUser: { id: companyUserId },
-      },
-      relations: {
-        role: true,
-      },
-    });
-  }
-
-  // Company users / memberships
-
-  async addCompanyUser(
-    dto: AddCompanyUserDto,
-  ): Promise<CompanyUser> {
-    const company = await this.companies.findOneBy({
-      id: dto.companyId,
-    });
-
-    if (!company) {
-      throw new NotFoundException('Company not found');
-    }
-
-    const user = await this.users.findOneBy({
-      id: dto.userId,
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    if (dto.departmentId) {
-      const department = await this.departments.findOne({
-        where: {
-          id: dto.departmentId,
-          company: {
-            id: dto.companyId,
-          },
-        },
-      });
-
-      if (!department) {
-        throw new NotFoundException(
-          'Department does not exist in this company',
-        );
-      }
-    }
-
-    const existingMembership =
-      await this.companyUsers.findOne({
-        where: {
-          company: {
-            id: dto.companyId,
-          },
-          user: {
-            id: dto.userId,
-          },
-        },
-      });
-
-    if (existingMembership) {
-      throw new ConflictException(
-        'User is already a member of this company',
-      );
-    }
-
-    const membership = this.companyUsers.create({
-      company,
-      user,
-      departmentId: dto.departmentId,
-      employeeNumber: dto.employeeNumber,
-      jobTitle: dto.jobTitle,
-      status: 'active',
-    });
-
-    return this.companyUsers.save(membership);
-  }
-
-  findCompanyUsers(
-    companyId: string,
-  ): Promise<CompanyUser[]> {
-    return this.companyUsers.find({
-      where: {
-        company: {
-          id: companyId,
+        role: {
+          company: { id: membership.company.id },
         },
       },
       relations: {
-        company: true,
-        user: true,
-      },
-      order: {
-        createdAt: 'DESC',
+        role: {
+          company: true,
+        },
       },
     });
   }
 
-  async findCompanyUser(
-    id: string,
-  ): Promise<CompanyUser> {
-    const membership = await this.companyUsers.findOne({
-      where: { id },
-      relations: {
-        company: true,
-        user: true,
-      },
-    });
+  // Membership endpoints share validation with UsersService.
 
-    if (!membership) {
-      throw new NotFoundException(
-        'Company membership not found',
-      );
-    }
-
-    return membership;
+  addCompanyUser(dto: AddCompanyUserDto): Promise<CompanyUser> {
+    return this.iam.addCompanyUser(dto);
   }
 
-  async updateCompanyUser(
+  findCompanyUsers(companyId: string): Promise<CompanyUser[]> {
+    return this.iam.findCompanyUsers(companyId);
+  }
+
+  findCompanyUser(id: string): Promise<CompanyUser> {
+    return this.iam.findCompanyUser(id);
+  }
+
+  updateCompanyUser(
     id: string,
     dto: UpdateCompanyUserDto,
   ): Promise<CompanyUser> {
-    const membership = await this.companyUsers.findOne({
-      where: { id },
-      relations: {
-        company: true,
-      },
-    });
-
-    if (!membership) {
-      throw new NotFoundException(
-        'Company membership not found',
-      );
-    }
-
-    if (dto.departmentId) {
-      const department = await this.departments.findOne({
-        where: {
-          id: dto.departmentId,
-          company: {
-            id: membership.company.id,
-          },
-        },
-      });
-
-      if (!department) {
-        throw new NotFoundException(
-          'Department does not exist in this company',
-        );
-      }
-    }
-
-    Object.assign(membership, dto);
-
-    return this.companyUsers.save(membership);
+    return this.iam.updateCompanyUser(id, dto);
   }
 
   async removeCompanyUser(id: string): Promise<void> {
-    const membership = await this.findCompanyUser(id);
+    await this.iam.deactivateCompanyUser(id);
+  }
 
-    await this.companyUsers.remove(membership);
+  unassignRole(companyUserId: string, roleId: string): Promise<void> {
+    return this.iam.unassignRole(companyUserId, roleId);
+  }
+
+  revokePermission(roleId: string, permissionId: string): Promise<void> {
+    return this.iam.revokePermission(roleId, permissionId);
   }
 }

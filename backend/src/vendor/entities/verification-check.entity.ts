@@ -10,25 +10,25 @@ export class VerificationCheck extends BaseEntity {
   @JoinColumn({ name: 'verification_case_id' })
   verificationCase!: VerificationCase;
 
-  @Column({ type: 'varchar', length: 100, nullable: false })
+  @Column({ name: 'check_type', type: 'varchar', length: 100, nullable: false })
   checkType!: string;
 
-  @Column({ type: 'varchar', length: 150, nullable: false })
+  @Column({ name: 'name', type: 'varchar', length: 150, nullable: false })
   name!: string;
 
-  @Column({ type: 'varchar', length: 30, nullable: false, default: 'pending' })
+  @Column({ name: 'status', type: 'varchar', length: 30, nullable: false, default: 'pending' })
   status!: string;
 
-  @Column({ type: 'boolean', nullable: false, default: true })
+  @Column({ name: 'is_required', type: 'boolean', nullable: false, default: true })
   isRequired!: boolean;
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'checked_by' })
   checkedBy?: User;
 
-  @Column({ type: 'timestamptz', nullable: true })
+  @Column({ name: 'checked_at', type: 'timestamptz', nullable: true })
   checkedAt?: Date;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ name: 'notes', type: 'text', nullable: true })
   notes?: string;
 }

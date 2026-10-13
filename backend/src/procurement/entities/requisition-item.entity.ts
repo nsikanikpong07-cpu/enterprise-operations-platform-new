@@ -20,22 +20,22 @@ export class RequisitionItem extends BaseEntity {
   @Column({ type: 'varchar', length: 500, nullable: false })
   description!: string;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, nullable: false })
+  @Column({name: 'quantity_requested', type: 'decimal', precision: 15, scale: 2, nullable: false })
   quantityRequested!: number;
 
   @ManyToOne(() => UnitOfMeasure, { nullable: false })
   @JoinColumn({ name: 'unit_of_measure_id' })
   unitOfMeasure!: UnitOfMeasure;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, nullable: true })
+  @Column({ name: 'estimated_unit_price', type: 'decimal', precision: 15, scale: 2, nullable: true })
   estimatedUnitPrice?: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, nullable: true })
+  @Column({ name: 'estimated_total_price', type: 'decimal', precision: 15, scale: 2, nullable: true })
   estimatedTotalPrice?: number;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ name: 'required_date', type: 'date', nullable: true })
   requiredDate?: Date;
 
-  @Column({ type: 'varchar', length: 30, nullable: false, default: 'Pending' })
+  @Column({ name: 'item_status', type: 'varchar', length: 30, nullable: false, default: 'Pending' })
   itemStatus!: string;
 }

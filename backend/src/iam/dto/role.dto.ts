@@ -1,13 +1,23 @@
 import {
   IsIn,
+  IsNotEmpty,
   IsOptional,
   IsString,
   IsUUID,
   MaxLength,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateRoleDto {
+  // The company that owns the new role.
+  @IsUUID()
+  companyId!: string;
+
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
   @IsString()
+  @IsNotEmpty()
   @MaxLength(100)
   name!: string;
 
@@ -17,8 +27,13 @@ export class CreateRoleDto {
 }
 
 export class UpdateRoleDto {
+  // Company ownership cannot be changed through this DTO.
   @IsOptional()
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
   @IsString()
+  @IsNotEmpty()
   @MaxLength(100)
   name?: string;
 
@@ -38,6 +53,7 @@ export class CreatePermissionDto {
 }
 
 export class AssignRoleDto {
+  // This is a company membership ID, not a login user ID.
   @IsUUID()
   companyUserId!: string;
 

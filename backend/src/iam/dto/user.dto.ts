@@ -6,14 +6,14 @@ import {
   IsString,
   Length,
   MaxLength,
-} from 'class-validator';
+} from "class-validator";
 
 export class CreateUserDto {
   @IsEmail()
   email!: string;
 
   @IsString()
-  @Length(8, 72)
+  @Length(15, 128)
   password!: string;
 
   @IsString()
@@ -45,6 +45,6 @@ export class UpdateUserDto {
   phone?: string;
 
   @IsOptional()
-  @IsIn(['active', 'suspended', 'inactive'])
+  @IsIn(["active", "suspended", "inactive"])
   status?: string;
 }

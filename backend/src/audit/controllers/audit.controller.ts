@@ -1,8 +1,10 @@
-import { Controller, Get, Query } from '@nestjs/common';
-import { AuditLogQueryDto } from '../dto/audit.dto.js';
-import { AuditService } from '../providers/audit.service.js';
+import { IamScope } from "../../auth/decorators/iam-scope.decorator.js";
+import { Controller, Get, Query } from "@nestjs/common";
+import { AuditLogQueryDto } from "../dto/audit.dto.js";
+import { AuditService } from "../providers/audit.service.js";
 
-@Controller('audit/logs')
+@IamScope({ kind: "company", location: "query", key: "companyId" })
+@Controller("audit/logs")
 export class AuditController {
   constructor(private readonly audit: AuditService) {}
 

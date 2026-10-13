@@ -11,7 +11,7 @@ import { ProcurementModule } from './procurement/procurement.module.js';
 import { VendorModule } from './vendor/vendor.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
-
+import { AuthModule } from './auth/auth.module.js';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -19,10 +19,12 @@ import { AppService } from './app.service.js';
       load: [appConfig],
       envFilePath: ['.env', '../.env'],
       cache: true,
+      
     }),
     TypeOrmModule.forRoot(dataSourceOptions),
     OrganizationModule,
     IamModule,
+    AuthModule,
     CatalogModule,
     VendorModule,
     ProcurementModule,

@@ -1,20 +1,24 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
-import {
-  AuditLogQueryDto,
-  CreateAuditLogDto,
-} from '../dto/audit.dto.js';
-import { AuditLog } from '../entities/audit-log.entity.js';
+import { BadRequestException } from "@nestjs/common";
+import { DataSource } from "typeorm";
+import { AuditWriterService } from "./audit-writer.service.js";
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { FindOptionsWhere, Repository } from "typeorm";
+import { AuditLogQueryDto, CreateAuditLogDto } from "../dto/audit.dto.js";
+import { AuditLog } from "../entities/audit-log.entity.js";
 
 @Injectable()
 export class AuditService {
   constructor(
     @InjectRepository(AuditLog)
     private readonly auditLogs: Repository<AuditLog>,
+    private readonly dataSource: DataSource,
+    private readonly writer: AuditWriterService,
   ) {}
 
   findAll(query: AuditLogQueryDto): Promise<AuditLog[]> {
+    if (!query.companyId)
+      throw new BadRequestException("companyId is required");
     const where: FindOptionsWhere<AuditLog> = {};
     if (query.companyId) where.company = { id: query.companyId };
     if (query.userId) where.user = { id: query.userId };
@@ -24,19 +28,20 @@ export class AuditService {
     return this.auditLogs.find({
       where,
       relations: { company: true, user: true },
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
       take: 200,
     });
   }
 
-  record(dto: CreateAuditLogDto): Promise<AuditLog> {
-    const { companyId, userId, ...rest } = dto;
-    return this.auditLogs.save(
-      this.auditLogs.create({
-        ...rest,
-        company: companyId ? { id: companyId } : undefined,
-        user: userId ? { id: userId } : undefined,
-      }),
-    );
+  async record(dto: CreateAuditLogDto): Promise<void> {
+    await this.writer.write(this.dataSource, {
+      action: dto.action,
+      entityType: dto.entityType,
+      entityId: dto.entityId,
+      companyId: dto.companyId,
+      actorId: dto.userId,
+      oldValues: dto.oldValues,
+      newValues: dto.newValues,
+    });
   }
 }

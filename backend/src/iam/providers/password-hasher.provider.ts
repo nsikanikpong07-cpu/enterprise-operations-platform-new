@@ -1,29 +1,36 @@
-import { Provider } from '@nestjs/common';
-import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
+import type { Provider } from '@nestjs/common';
+import * as argon2 from 'argon2';
 
 export const PASSWORD_HASHER = Symbol('PASSWORD_HASHER');
 
 export interface PasswordHasher {
-  hash(plain: string): string;
-  verify(plain: string, hash: string): boolean;
+  hash(plain: string): Promise<string>;
+  verify(plain: string, encodedHash: string): Promise<boolean>;
 }
 
-class ScryptPasswordHasher implements PasswordHasher {
-  hash(plain: string): string {
-    const salt = randomBytes(16).toString('hex');
-    const derived = scryptSync(plain, salt, 64).toString('hex');
-    return `scrypt:${salt}:${derived}`;
+class Argon2idPasswordHasher implements PasswordHasher {
+  hash(plain: string): Promise<string> {
+    return argon2.hash(plain, {
+      type: argon2.argon2id,
+      memoryCost: 65536,
+      timeCost: 3,
+      parallelism: 1,
+    });
   }
 
-  verify(plain: string, hash: string): boolean {
-    const [, salt, expected] = hash.split(':');
-    if (!salt || !expected) return false;
-    const derived = scryptSync(plain, salt, 64);
-    return timingSafeEqual(derived, Buffer.from(expected, 'hex'));
+  async verify(
+    plain: string,
+    encodedHash: string,
+  ): Promise<boolean> {
+    if (!encodedHash.startsWith('$argon2id$')) {
+      return false;
+    }
+
+    return argon2.verify(encodedHash, plain);
   }
 }
 
 export const passwordHasherProvider: Provider<PasswordHasher> = {
   provide: PASSWORD_HASHER,
-  useClass: ScryptPasswordHasher,
+  useClass: Argon2idPasswordHasher,
 };

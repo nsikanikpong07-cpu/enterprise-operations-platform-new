@@ -20,6 +20,6 @@ export class VerificationReview extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   comments?: string;
 
-  @Column({ type: 'timestamptz', nullable: false, default: () => 'NOW()' })
+  @Column({name: 'reviewed_at', type: 'timestamptz', nullable: false, default: () => 'NOW()' })
   reviewedAt!: Date;
 }

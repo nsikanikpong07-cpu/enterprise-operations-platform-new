@@ -1,117 +1,160 @@
+import { ForbiddenException } from "@nestjs/common";
+import { IamScope } from "../../auth/decorators/iam-scope.decorator.js";
 import {
   Body,
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Patch,
   Post,
   Query,
-} from '@nestjs/common';
+} from "@nestjs/common";
+
 import {
+  AddCompanyUserDto,
   AssignRoleDto,
-  CreatePermissionDto,
   CreateRoleDto,
   GrantPermissionDto,
-  UpdateRoleDto,
-  AddCompanyUserDto,
   UpdateCompanyUserDto,
-} from '../dto/role.dto.js';
-import { RolesService } from '../providers/roles.service.js';
+  UpdateRoleDto,
+} from "../dto/role.dto.js";
+import { RolesService } from "../providers/roles.service.js";
 
-@Controller('iam')
+@IamScope({ kind: "company", location: "query", key: "companyId" })
+@Controller("iam")
 export class RolesController {
   constructor(private readonly roles: RolesService) {}
 
-  @Get('roles')
-  findAll() {
-    return this.roles.findAll();
+  // Roles
+
+  // Example: GET /iam/roles?companyId=<company UUID>
+  @Get("roles")
+  findAll(@Query("companyId", ParseUUIDPipe) companyId: string) {
+    return this.roles.findAll(companyId);
   }
 
-  @Get('roles/:id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
+  @IamScope({ kind: "role", location: "params", key: "id" })
+  @Get("roles/:id")
+  findOne(@Param("id", ParseUUIDPipe) id: string) {
     return this.roles.findOne(id);
   }
 
-  @Post('roles')
+  // The request body now includes companyId.
+  @IamScope({ kind: "company", location: "body", key: "companyId" })
+  @Post("roles")
   create(@Body() dto: CreateRoleDto) {
     return this.roles.create(dto);
   }
 
-  @Patch('roles/:id')
-  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateRoleDto) {
+  @IamScope({ kind: "role", location: "params", key: "id" })
+  @Patch("roles/:id")
+  update(@Param("id", ParseUUIDPipe) id: string, @Body() dto: UpdateRoleDto) {
     return this.roles.update(id, dto);
   }
 
-  @Delete('roles/:id')
-  remove(@Param('id', ParseUUIDPipe) id: string) {
+  @IamScope({ kind: "role", location: "params", key: "id" })
+  @Delete("roles/:id")
+  remove(@Param("id", ParseUUIDPipe) id: string) {
     return this.roles.remove(id);
   }
 
-  @Get('permissions')
+  // Permissions
+
+  @Get("permissions")
   findPermissions() {
     return this.roles.findPermissions();
   }
 
-  @Post('permissions')
-  createPermission(@Body() dto: CreatePermissionDto) {
-    return this.roles.createPermission(dto);
+  @IamScope({ kind: "company", location: "query", key: "companyId" })
+  @Post("permissions")
+  createPermission() {
+    // Permissions are maintained by platform migrations, not company admins.
+    throw new ForbiddenException("The platform permission list is read-only");
   }
 
-  @Post('roles/grant-permission')
+  @IamScope({ kind: "role", location: "body", key: "roleId" })
+  @Post("roles/grant-permission")
   grantPermission(@Body() dto: GrantPermissionDto) {
     return this.roles.grantPermission(dto);
   }
 
-  @Get('roles/:id/permissions')
-  rolePermissions(@Param('id', ParseUUIDPipe) id: string) {
+  @IamScope({ kind: "role", location: "params", key: "id" })
+  @Get("roles/:id/permissions")
+  rolePermissions(@Param("id", ParseUUIDPipe) id: string) {
     return this.roles.rolePermissionsFor(id);
   }
 
-  @Post('user-roles')
+  // Role assignments
+
+  @IamScope({ kind: "membership", location: "body", key: "companyUserId" })
+  @Post("user-roles")
   assignRole(@Body() dto: AssignRoleDto) {
     return this.roles.assignRole(dto);
   }
 
-  @Get('user-roles/:companyUserId')
-  rolesForCompanyUser(@Param('companyUserId', ParseUUIDPipe) id: string) {
+  @IamScope({ kind: "membership", location: "params", key: "companyUserId" })
+  @Get("user-roles/:companyUserId")
+  rolesForCompanyUser(@Param("companyUserId", ParseUUIDPipe) id: string) {
     return this.roles.rolesForCompanyUser(id);
   }
 
-  // Company users / memberships
+  // Company memberships
 
-@Post('company-users')
-addCompanyUser(@Body() dto: AddCompanyUserDto) {
-  return this.roles.addCompanyUser(dto);
-}
+  @IamScope({ kind: "company", location: "body", key: "companyId" })
+  @Post("company-users")
+  addCompanyUser(@Body() dto: AddCompanyUserDto) {
+    return this.roles.addCompanyUser(dto);
+  }
 
-@Get('company-users')
-findCompanyUsers(
-  @Query('companyId', ParseUUIDPipe) companyId: string,
-) {
-  return this.roles.findCompanyUsers(companyId);
-}
+  @Get("company-users")
+  findCompanyUsers(@Query("companyId", ParseUUIDPipe) companyId: string) {
+    return this.roles.findCompanyUsers(companyId);
+  }
 
-@Get('company-users/:id')
-findCompanyUser(
-  @Param('id', ParseUUIDPipe) id: string,
-) {
-  return this.roles.findCompanyUser(id);
-}
+  @IamScope({ kind: "membership", location: "params", key: "id" })
+  @Get("company-users/:id")
+  findCompanyUser(@Param("id", ParseUUIDPipe) id: string) {
+    return this.roles.findCompanyUser(id);
+  }
 
-@Patch('company-users/:id')
-updateCompanyUser(
-  @Param('id', ParseUUIDPipe) id: string,
-  @Body() dto: UpdateCompanyUserDto,
-) {
-  return this.roles.updateCompanyUser(id, dto);
-}
+  @IamScope({ kind: "membership", location: "params", key: "id" })
+  @Patch("company-users/:id")
+  updateCompanyUser(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: UpdateCompanyUserDto,
+  ) {
+    return this.roles.updateCompanyUser(id, dto);
+  }
 
-@Delete('company-users/:id')
-removeCompanyUser(
-  @Param('id', ParseUUIDPipe) id: string,
-) {
-  return this.roles.removeCompanyUser(id);
-}
+  @IamScope({ kind: "membership", location: "params", key: "id" })
+  @Delete("company-users/:id")
+  removeCompanyUser(@Param("id", ParseUUIDPipe) id: string) {
+    return this.roles.removeCompanyUser(id);
+  }
+
+  // Revoke one grant while keeping the shared permission definition.
+  @IamScope({ kind: "role", location: "params", key: "roleId" })
+  @Delete("roles/:roleId/permissions/:permissionId")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  revokePermission(
+    @Param("roleId", ParseUUIDPipe) roleId: string,
+    @Param("permissionId", ParseUUIDPipe) permissionId: string,
+  ) {
+    return this.roles.revokePermission(roleId, permissionId);
+  }
+
+  // Remove one role from one member. Neither record is deleted.
+  @IamScope({ kind: "membership", location: "params", key: "companyUserId" })
+  @Delete("user-roles/:companyUserId/:roleId")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  unassignRole(
+    @Param("companyUserId", ParseUUIDPipe) companyUserId: string,
+    @Param("roleId", ParseUUIDPipe) roleId: string,
+  ) {
+    return this.roles.unassignRole(companyUserId, roleId);
+  }
 }

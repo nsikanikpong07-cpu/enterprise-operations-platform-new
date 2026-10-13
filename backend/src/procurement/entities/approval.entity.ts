@@ -19,18 +19,18 @@ export class Approval extends BaseEntity {
   @JoinColumn({ name: 'approver_id' })
   approver!: CompanyUser;
 
-  @Column({ type: 'int', nullable: false })
+  @Column({name: 'approval_level', type: 'int', nullable: false })
   approvalLevel!: number;
 
-  @Column({ type: 'varchar', length: 30, nullable: false, default: 'Pending' })
+  @Column({name: 'approval_status', type: 'varchar', length: 30, nullable: false, default: 'Pending' })
   approvalStatus!: string;
 
-  @Column({ type: 'timestamptz', nullable: true })
+  @Column({ name: 'approval_date', type: 'timestamptz', nullable: true })
   approvalDate?: Date;
 
-  @Column({ type: 'varchar', length: 500, nullable: true })
+  @Column({ name: 'comments', type: 'varchar', length: 500, nullable: true })
   comments?: string;
 
-  @Column({ type: 'varchar', length: 500, nullable: true })
+  @Column({ name: 'rejection_reason', type: 'varchar', length: 500, nullable: true })
   rejectionReason?: string;
 }
