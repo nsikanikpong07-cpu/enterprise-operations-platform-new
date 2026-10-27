@@ -1,0 +1,33 @@
+# Local dependencies and generated files must not enter the build context.
+node_modules
+**/node_modules
+dist
+**/dist
+coverage
+.git
+**/.git
+*.log
+**/*.log
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# Configuration secrets are injected at runtime through Compose.
+.env
+.env.*
+**/.env
+**/.env.*
+.npmrc
+**/.npmrc
+*.pem
+*.key
+
+# These are not needed to compile or run the backend image.
+test
+scripts
+*.zip
+*.sql
+*.dump
+*.backup
+Dockerfile*
+compose*.yaml
+compose*.yml

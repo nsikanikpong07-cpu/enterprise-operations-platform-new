@@ -40,7 +40,7 @@ import { PermissionsGuard } from "./guards/permissions.guard.js";
 
           signOptions: {
             algorithm: "HS256",
-            expiresIn: 900,
+            expiresIn: 3600,
             issuer: "enterprise-operations",
             audience: "enterprise-operations-api",
           },
