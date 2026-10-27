@@ -1,4 +1,5 @@
 import type { CompanyAuthenticatedRequest } from "../../auth/guards/company-access.guard.js";
+import { ApiBearerAuth } from '@nestjs/swagger';
 import {
   Body,
   Req,
@@ -11,6 +12,7 @@ import {
   Patch,
   Post,
 } from "@nestjs/common";
+
 import {
   CreateCompanyDto,
   CreateDepartmentDto,
@@ -21,6 +23,8 @@ import {
 } from "../dto/organization.dto.js";
 import { OrganizationService } from "../providers/organization.service.js";
 
+
+@ApiBearerAuth()
 @Controller("organization")
 export class OrganizationController {
   constructor(private readonly organization: OrganizationService) {}
