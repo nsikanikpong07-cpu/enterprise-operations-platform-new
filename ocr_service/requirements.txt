@@ -1,0 +1,9 @@
+opencv-python>=4.8
+numpy
+pytesseract
+pymupdf
+pillow
+fastapi
+uvicorn
+python-multipart
+requests

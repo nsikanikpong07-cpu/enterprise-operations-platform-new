@@ -1,0 +1,4 @@
+output/
+service_uploads/
+__pycache__/
+.env
