@@ -1,0 +1,21 @@
+# Local backend only. PostgreSQL stays on your Windows computer.
+services:
+  backend:
+    image: enterprise-operations-backend:local
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    init: true
+    env_file:
+      - ./backend/.env
+    environment:
+      # This Compose file is for local use, including localhost reset URLs.
+      NODE_ENV: development
+      PORT: "3001"
+      PGHOST: host.docker.internal
+      # Use the PGHOST/PGPORT/PGUSER/PGPASSWORD/PGDATABASE variables above
+      # and in .env instead of a URL pointing to the Windows localhost.
+      DATABASE_URL: "postgresql://impressorenterprise:4EMsttYXrDjm3cyxPRw71L78pLGqlaU5@dpg-dbi9hn8m7kps73c96a0g-a/impressorent"
+    ports:
+      - "127.0.0.1:3001:3001"
+    restart: "no"
