@@ -1,3 +1,4 @@
+import { ApiBody } from "@nestjs/swagger";
 import {
   Body,
   Controller,
@@ -38,22 +39,26 @@ export class SuppliersController {
   }
 
   @Post()
+  @ApiBody({ type: CreateSupplierDto })
   create(@Body() dto: CreateSupplierDto) {
     return this.suppliers.create(dto);
   }
 
   @Patch(':id')
+  @ApiBody({ type: UpdateSupplierDto })
   update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateSupplierDto) {
     return this.suppliers.update(id, dto);
   }
 
   @Post('onboard')
+  @ApiBody({ type: OnboardSupplierDto })
   onboard(@Body() dto: OnboardSupplierDto) {
     return this.suppliers.onboard(dto);
   }
 
 
   @Patch('profiles/:id')
+  @ApiBody({ type: UpdateSupplierProfileDto })
   updateProfile(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateSupplierProfileDto,
@@ -62,6 +67,7 @@ export class SuppliersController {
   }
 
   @Post('contacts')
+  @ApiBody({ type: CreateSupplierContactDto })
   addContact(@Body() dto: CreateSupplierContactDto) {
     return this.suppliers.addContact(dto);
   }
@@ -72,6 +78,7 @@ export class SuppliersController {
   }
 
   @Post('documents')
+  @ApiBody({ type: CreateSupplierDocumentDto })
   addDocument(@Body() dto: CreateSupplierDocumentDto) {
     return this.suppliers.addDocument(dto);
   }

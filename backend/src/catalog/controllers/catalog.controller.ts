@@ -1,3 +1,4 @@
+import { ApiBody } from "@nestjs/swagger";
 import {
   Body,
   Controller,
@@ -31,11 +32,13 @@ export class CatalogController {
   }
 
   @Post('categories')
+  @ApiBody({ type: CreateItemCategoryDto })
   createCategory(@Body() dto: CreateItemCategoryDto) {
     return this.catalog.createCategory(dto);
   }
 
   @Patch('categories/:id')
+  @ApiBody({ type: UpdateItemCategoryDto })
   updateCategory(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateItemCategoryDto,
@@ -54,6 +57,7 @@ export class CatalogController {
   }
 
   @Post('units')
+  @ApiBody({ type: CreateUnitOfMeasureDto })
   createUnit(@Body() dto: CreateUnitOfMeasureDto) {
     return this.catalog.createUnit(dto);
   }

@@ -1,3 +1,4 @@
+import { ApiBearerAuth, ApiBody, ApiForbiddenResponse } from "@nestjs/swagger";
 import { ForbiddenException } from "@nestjs/common";
 import { IamScope } from "../../auth/decorators/iam-scope.decorator.js";
 import {
@@ -25,6 +26,7 @@ import {
 import { RolesService } from "../providers/roles.service.js";
 
 @IamScope({ kind: "company", location: "query", key: "companyId" })
+@ApiBearerAuth()
 @Controller("iam")
 export class RolesController {
   constructor(private readonly roles: RolesService) {}
@@ -46,12 +48,14 @@ export class RolesController {
   // The request body now includes companyId.
   @IamScope({ kind: "company", location: "body", key: "companyId" })
   @Post("roles")
+  @ApiBody({ type: CreateRoleDto })
   create(@Body() dto: CreateRoleDto) {
     return this.roles.create(dto);
   }
 
   @IamScope({ kind: "role", location: "params", key: "id" })
   @Patch("roles/:id")
+  @ApiBody({ type: UpdateRoleDto })
   update(@Param("id", ParseUUIDPipe) id: string, @Body() dto: UpdateRoleDto) {
     return this.roles.update(id, dto);
   }
@@ -70,6 +74,7 @@ export class RolesController {
   }
 
   @IamScope({ kind: "company", location: "query", key: "companyId" })
+  @ApiForbiddenResponse({ description: "The platform permission list is read-only; this endpoint always rejects creation." })
   @Post("permissions")
   createPermission() {
     // Permissions are maintained by platform migrations, not company admins.
@@ -78,6 +83,7 @@ export class RolesController {
 
   @IamScope({ kind: "role", location: "body", key: "roleId" })
   @Post("roles/grant-permission")
+  @ApiBody({ type: GrantPermissionDto })
   grantPermission(@Body() dto: GrantPermissionDto) {
     return this.roles.grantPermission(dto);
   }
@@ -92,6 +98,7 @@ export class RolesController {
 
   @IamScope({ kind: "membership", location: "body", key: "companyUserId" })
   @Post("user-roles")
+  @ApiBody({ type: AssignRoleDto })
   assignRole(@Body() dto: AssignRoleDto) {
     return this.roles.assignRole(dto);
   }
@@ -106,6 +113,7 @@ export class RolesController {
 
   @IamScope({ kind: "company", location: "body", key: "companyId" })
   @Post("company-users")
+  @ApiBody({ type: AddCompanyUserDto })
   addCompanyUser(@Body() dto: AddCompanyUserDto) {
     return this.roles.addCompanyUser(dto);
   }
@@ -123,6 +131,7 @@ export class RolesController {
 
   @IamScope({ kind: "membership", location: "params", key: "id" })
   @Patch("company-users/:id")
+  @ApiBody({ type: UpdateCompanyUserDto })
   updateCompanyUser(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateCompanyUserDto,

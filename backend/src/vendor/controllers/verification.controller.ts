@@ -1,3 +1,4 @@
+import { ApiBody } from "@nestjs/swagger";
 import {
   Body,
   Controller,
@@ -20,6 +21,7 @@ export class VerificationController {
   constructor(private readonly verification: VerificationService) {}
 
   @Post('cases')
+  @ApiBody({ type: OpenVerificationCaseDto })
   openCase(@Body() dto: OpenVerificationCaseDto) {
     return this.verification.openCase(dto);
   }
@@ -35,6 +37,7 @@ export class VerificationController {
   }
 
   @Patch('cases/:id')
+  @ApiBody({ type: UpdateVerificationCaseDto })
   updateCase(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateVerificationCaseDto,
@@ -43,6 +46,7 @@ export class VerificationController {
   }
 
   @Post('risk-assessments')
+  @ApiBody({ type: CreateRiskAssessmentDto })
   assess(@Body() dto: CreateRiskAssessmentDto) {
     return this.verification.assess(dto);
   }

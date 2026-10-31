@@ -1,3 +1,4 @@
+import { ApiBody } from "@nestjs/swagger";
 import { Body, Controller, Post, Req } from "@nestjs/common";
 import type { Request } from "express";
 import { RegisterOrganizationDto } from "../dto/register-organization.dto.js";
@@ -9,6 +10,7 @@ export class RegistrationController {
   // Organization owners register publicly. Ordinary staff still cannot
   // self-register: their Company Admin uses the protected IAM endpoint.
   @Post("register")
+  @ApiBody({ type: RegisterOrganizationDto })
   register(@Body() dto: RegisterOrganizationDto, @Req() request: Request) {
     return this.registration.register(
       dto,
