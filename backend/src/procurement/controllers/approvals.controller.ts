@@ -1,3 +1,4 @@
+import { ApiBody } from "@nestjs/swagger";
 import {
   Body,
   Controller,
@@ -19,6 +20,7 @@ export class ApprovalsController {
   constructor(private readonly approvals: ApprovalsService) {}
 
   @Post()
+  @ApiBody({ type: CreateApprovalDto })
   create(@Body() dto: CreateApprovalDto) {
     return this.approvals.create(dto);
   }
@@ -34,6 +36,7 @@ export class ApprovalsController {
   }
 
   @Patch(':id/decision')
+  @ApiBody({ type: DecideApprovalDto })
   decide(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: DecideApprovalDto,

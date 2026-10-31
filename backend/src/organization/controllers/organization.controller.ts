@@ -1,5 +1,5 @@
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiGoneResponse } from "@nestjs/swagger";
 import type { CompanyAuthenticatedRequest } from "../../auth/guards/company-access.guard.js";
-import { ApiBearerAuth } from '@nestjs/swagger';
 import {
   Body,
   Req,
@@ -42,7 +42,10 @@ export class OrganizationController {
     return this.organization.findCompany(id);
   }
 
+  @ApiOperation({ deprecated: true, description: "Use POST /auth/register instead." })
+  @ApiGoneResponse({ description: "Use POST /auth/register to create the company and its first administrator." })
   @Post("companies")
+  @ApiBody({ type: CreateCompanyDto })
   createCompany(@Body() _dto: CreateCompanyDto) {
     throw new GoneException(
       "Use POST /auth/register to create the company and its first administrator together",
@@ -50,6 +53,7 @@ export class OrganizationController {
   }
 
   @Patch("companies/:id")
+  @ApiBody({ type: UpdateCompanyDto })
   updateCompany(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateCompanyDto,
@@ -69,11 +73,13 @@ export class OrganizationController {
   }
 
   @Post("departments")
+  @ApiBody({ type: CreateDepartmentDto })
   createDepartment(@Body() dto: CreateDepartmentDto) {
     return this.organization.createDepartment(dto);
   }
 
   @Patch("departments/:id")
+  @ApiBody({ type: UpdateDepartmentDto })
   updateDepartment(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateDepartmentDto,
@@ -93,11 +99,13 @@ export class OrganizationController {
   }
 
   @Post("locations")
+  @ApiBody({ type: CreateLocationDto })
   createLocation(@Body() dto: CreateLocationDto) {
     return this.organization.createLocation(dto);
   }
 
   @Patch("locations/:id")
+  @ApiBody({ type: UpdateLocationDto })
   updateLocation(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateLocationDto,

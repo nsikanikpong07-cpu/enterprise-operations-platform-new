@@ -1,3 +1,4 @@
+import { ApiBearerAuth, ApiBody } from "@nestjs/swagger";
 import {
   Body,
   Controller,
@@ -16,6 +17,7 @@ import { UpdateUserDto } from "../dto/user.dto.js";
 import { UsersService } from "../providers/users.service.js";
 
 @IamScope({ kind: "company", location: "query", key: "companyId" })
+@ApiBearerAuth()
 @Controller("iam/users")
 export class UsersController {
   constructor(private readonly users: UsersService) {}
@@ -35,12 +37,14 @@ export class UsersController {
   // Compatibility endpoint for existing test accounts. No public signup.
   @IamScope({ kind: "company", location: "body", key: "companyId" })
   @Post("memberships")
+  @ApiBody({ type: AddCompanyUserDto })
   addToCompany(@Body() dto: AddCompanyUserDto) {
     return this.users.addToCompany(dto);
   }
 
   @IamScope({ kind: "membership", location: "params", key: "id" })
   @Patch("memberships/:id")
+  @ApiBody({ type: UpdateCompanyUserDto })
   updateCompanyUser(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateCompanyUserDto,
@@ -50,6 +54,7 @@ export class UsersController {
 
   @IamScope({ kind: "company", location: "body", key: "companyId" })
   @Post()
+  @ApiBody({ type: CreateStaffDto })
   create(@Body() dto: CreateStaffDto) {
     return this.users.create(dto);
   }
@@ -62,6 +67,7 @@ export class UsersController {
 
   @IamScope({ kind: "user", location: "params", key: "id" })
   @Patch(":id")
+  @ApiBody({ type: UpdateUserDto })
   update(@Param("id", ParseUUIDPipe) id: string, @Body() dto: UpdateUserDto) {
     return this.users.update(id, dto);
   }

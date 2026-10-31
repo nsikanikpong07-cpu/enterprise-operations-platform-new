@@ -1,3 +1,4 @@
+import { ApiBearerAuth, ApiBody } from "@nestjs/swagger";
 import type { Request } from "express";
 import {
   ChangePasswordDto,
@@ -38,6 +39,7 @@ export class AuthController {
   // Login is public so users can obtain their access token.
   @Post("login")
   @HttpCode(HttpStatus.OK)
+  @ApiBody({ type: LoginDto })
   login(@Body() dto: LoginDto, @Req() request: Request) {
     return this.auth.login(
       dto,
@@ -47,6 +49,7 @@ export class AuthController {
 
   // Returns the user identified by the validated token.
   @Get("me")
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   me(@Req() request: AuthenticatedRequest) {
     return request.user;
@@ -54,6 +57,7 @@ export class AuthController {
 
   // Checks authentication and active company membership.
   @Get("company-access")
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, CompanyAccessGuard)
   companyAccess(
     @Query("companyId", ParseUUIDPipe) companyId: string,
@@ -73,6 +77,7 @@ export class AuthController {
   //
   // This endpoint checks access; it does not create a requisition.
   @Get("requisition-access")
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, CompanyAccessGuard, PermissionsGuard)
   @RequirePermissions("create_requisition")
   requisitionAccess(
@@ -89,6 +94,7 @@ export class AuthController {
   // Public recovery endpoints are rate-limited independently of login.
   @Post("forgot-password")
   @HttpCode(HttpStatus.OK)
+  @ApiBody({ type: ForgotPasswordDto })
   forgotPassword(@Body() dto: ForgotPasswordDto, @Req() request: Request) {
     return this.passwords.forgot(
       dto.email,
@@ -98,6 +104,7 @@ export class AuthController {
 
   @Post("reset-password")
   @HttpCode(HttpStatus.OK)
+  @ApiBody({ type: ResetPasswordDto })
   resetPassword(@Body() dto: ResetPasswordDto, @Req() request: Request) {
     return this.passwords.reset(
       dto.token,
@@ -107,8 +114,10 @@ export class AuthController {
   }
 
   @Post("change-password")
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiBody({ type: ChangePasswordDto })
   changePassword(
     @Body() dto: ChangePasswordDto,
     @Req() request: AuthenticatedRequest,
@@ -124,6 +133,7 @@ export class AuthController {
 
   // Logout revokes ALL tokens for this user, not just this browser's token.
   @Post("logout")
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   logout(@Req() request: AuthenticatedRequest) {

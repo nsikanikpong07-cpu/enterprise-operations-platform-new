@@ -1,3 +1,4 @@
+import { ApiBody } from "@nestjs/swagger";
 import {
   Body,
   Controller,
@@ -35,11 +36,13 @@ export class ProcurementController {
   }
 
   @Post('purchase-orders')
+  @ApiBody({ type: CreatePurchaseOrderDto })
   createOrder(@Body() dto: CreatePurchaseOrderDto) {
     return this.procurement.createOrder(dto);
   }
 
   @Patch('purchase-orders/:id')
+  @ApiBody({ type: UpdatePurchaseOrderDto })
   updateOrder(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdatePurchaseOrderDto,
@@ -48,6 +51,7 @@ export class ProcurementController {
   }
 
   @Post('goods-receipts')
+  @ApiBody({ type: CreateGoodsReceiptDto })
   createReceipt(@Body() dto: CreateGoodsReceiptDto) {
     return this.procurement.createReceipt(dto);
   }

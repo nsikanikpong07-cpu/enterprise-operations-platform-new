@@ -1,3 +1,4 @@
+import { ApiBody } from "@nestjs/swagger";
 import {
   Body,
   Controller,
@@ -27,11 +28,13 @@ export class ItemsController {
   }
 
   @Post()
+  @ApiBody({ type: CreateItemDto })
   create(@Body() dto: CreateItemDto) {
     return this.items.create(dto);
   }
 
   @Patch(':id')
+  @ApiBody({ type: UpdateItemDto })
   update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateItemDto) {
     return this.items.update(id, dto);
   }

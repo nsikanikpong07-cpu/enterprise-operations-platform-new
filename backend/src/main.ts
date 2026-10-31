@@ -22,7 +22,15 @@ async function bootstrap() {
       'API documentation for the Enterprise Operations Platform',
     )
     .setVersion('1.0')
-    .addBearerAuth()
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'Enter the access token returned by POST /auth/login.',
+      },
+      'bearer',
+    )
     .build();
 
   // Generate OpenAPI documentation
