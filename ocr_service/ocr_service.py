@@ -27,7 +27,6 @@ import threading
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
-from verify_cac import ...
 
 import requests
 from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
