@@ -1,5 +1,11 @@
 .git
-__pycache__
-*.pyc
 .env
 venv
+__pycache__
+output
+service_uploads
+Dockerfile
+*.png
+*.jpg
+*.jpeg
+*.pdf
