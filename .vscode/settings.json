@@ -1,0 +1,47 @@
+{
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "sadohlevi",
+            "database": "sakila",
+            "username": "root",
+            "password": ""
+        },
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "sqlite",
+            "database": "C:\\Users\\Okei Sadoh Levi O\\Downloads\\acdbf234-2193-409f-bcdc-d1493cca32cb\\jobs_2023"
+        },
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "::1/128",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "Database",
+            "username": "postgres",
+            "database": "Asset",
+            "password": "root"
+        },
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "Ai_database",
+            "database": "Ai_database",
+            "username": "postgres",
+            "password": "Countles1."
+        }
+    ]
+}
