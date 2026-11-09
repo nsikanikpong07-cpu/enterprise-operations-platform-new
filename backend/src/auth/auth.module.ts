@@ -1,3 +1,4 @@
+import { ACCESS_TOKEN_LIFETIME_SECONDS } from "./token-config.js";
 import { AuthRateLimitModule } from "./auth-rate-limit.module.js";
 import { OrganizationAccessGuard } from "./guards/organization-access.guard.js";
 import { AuditModule } from "../audit/audit.module.js";
@@ -40,7 +41,7 @@ import { PermissionsGuard } from "./guards/permissions.guard.js";
 
           signOptions: {
             algorithm: "HS256",
-            expiresIn: 3600,
+            expiresIn: ACCESS_TOKEN_LIFETIME_SECONDS,
             issuer: "enterprise-operations",
             audience: "enterprise-operations-api",
           },

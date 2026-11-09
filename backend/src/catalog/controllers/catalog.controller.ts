@@ -1,4 +1,5 @@
-import { ApiBody } from "@nestjs/swagger";
+import {ApiBearerAuth,
+ ApiBody } from "@nestjs/swagger";
 import {
   Body,
   Controller,
@@ -9,7 +10,9 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard.js';
 import {
   CreateItemCategoryDto,
   CreateUnitOfMeasureDto,
@@ -17,6 +20,9 @@ import {
 } from '../dto/catalog.dto.js';
 import { CatalogService } from '../providers/catalog.service.js';
 
+
+@ApiBearerAuth('bearer')
+@UseGuards(JwtAuthGuard)
 @Controller('catalog')
 export class CatalogController {
   constructor(private readonly catalog: CatalogService) {}

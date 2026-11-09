@@ -1,3 +1,4 @@
+import { ACCESS_TOKEN_LIFETIME_SECONDS } from "../token-config.js";
 import { AuditWriterService } from "../../audit/providers/audit-writer.service.js";
 import { DataSource } from "typeorm";
 import { AuthRateLimitService } from "./auth-rate-limit.service.js";
@@ -124,7 +125,7 @@ export class AuthService {
     return {
       accessToken,
       tokenType: "Bearer",
-      expiresIn: 900,
+      expiresIn: ACCESS_TOKEN_LIFETIME_SECONDS,
       // Staff have one workspace; vendor/platform logins may have none.
       companyId: membership?.company.id ?? null,
       companyUserId: membership?.id ?? null,
