@@ -1,0 +1,366 @@
+.page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background:
+    radial-gradient(circle at 10% 15%, #f5e8df 0, transparent 30%),
+    radial-gradient(circle at 90% 85%, #e9efe7 0, transparent 30%), #f7f6f1;
+  color: #203127;
+}
+
+.card {
+  width: min(100%, 1050px);
+  box-sizing: border-box;
+  padding: 38px;
+  border: 1px solid #e5e5de;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 12px 40px rgb(35 50 38 / 6%);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #173326;
+  font-size: 20px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.brandMark {
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 10px;
+  background: #355e47;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.header {
+  margin-top: 28px;
+}
+
+.header h1 {
+  margin: 0;
+  color: #173326;
+  font-size: clamp(28px, 4vw, 38px);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.header h1::after {
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin-top: 12px;
+  border-radius: 3px;
+  background: #bd6b45;
+  content: "";
+}
+
+.header p {
+  margin: 14px 0 0;
+  color: #626a64;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.form {
+  margin-top: 26px;
+}
+
+.accountTypes {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.accountTypes legend {
+  margin-bottom: 10px;
+  color: #203127;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.accountTypes legend span {
+  color: #ad3e32;
+}
+
+.accountGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.accountOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #dce2dc;
+  border-radius: 9px;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.accountOption:hover {
+  border-color: #b6c8b9;
+  background: #f7faf7;
+}
+
+.accountOption input {
+  margin: 3px 0 0;
+  accent-color: #355e47;
+}
+
+.accountOption span {
+  display: grid;
+  gap: 5px;
+}
+
+.accountOption strong {
+  color: #173326;
+  font-size: 14px;
+}
+
+.accountOption small {
+  color: #626a64;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.selected {
+  border-color: #b35a34;
+  background: #fdf3ed;
+}
+
+.notice {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #fcf0e8;
+  color: #6e4938;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 36px;
+  margin-top: 26px;
+}
+
+.column {
+  min-width: 0;
+}
+
+.column h2 {
+  margin: 0 0 16px;
+  color: #173326;
+  font-size: 19px;
+}
+
+.column + .column {
+  padding-left: 36px;
+  border-left: 1px solid #e9eae4;
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 15px;
+}
+
+.field label {
+  color: #293c30;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.field input {
+  width: 100%;
+  min-width: 0;
+  min-height: 43px;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #cbd3cc;
+  border-radius: 8px;
+  background: #fff;
+  color: #203127;
+  font: inherit;
+  font-size: 14px;
+}
+
+.field input::placeholder {
+  color: #8a928c;
+}
+
+.field input:focus-visible,
+.passwordToggle:focus-visible,
+.submitButton:focus-visible,
+.brand:focus-visible,
+.signIn a:focus-visible {
+  outline: 3px solid #e59060;
+  outline-offset: 2px;
+}
+
+.field small {
+  color: #69746d;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.twoFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.ownerHeading {
+  margin-top: 24px !important;
+}
+
+.ownerNote {
+  margin: -5px 0 15px;
+  color: #626a64;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.passwordField {
+  position: relative;
+}
+
+.passwordField input {
+  padding-right: 48px;
+}
+
+.passwordToggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #355e47;
+  cursor: pointer;
+}
+
+.passwordToggle:hover {
+  background: #eef3ee;
+}
+
+.passwordToggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.submitButton {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 18px;
+  padding: 12px 20px;
+  border: 1px solid #355e47;
+  border-radius: 8px;
+  background: #355e47;
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 160ms ease;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: #254a35;
+}
+
+.submitButton:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.message {
+  margin: 20px 0 0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #f2f5ef;
+  color: #315442;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.signIn {
+  margin: 20px 0 0;
+  color: #626a64;
+  font-size: 14px;
+  text-align: center;
+}
+
+.signIn a {
+  color: #355e47;
+  font-weight: 700;
+}
+
+.signIn a:hover {
+  color: #a94e2b;
+}
+
+@media (max-width: 760px) {
+  .card {
+    padding: 26px;
+  }
+
+  .accountGrid,
+  .columns {
+    grid-template-columns: 1fr;
+  }
+
+  .columns {
+    gap: 20px;
+  }
+
+  .column + .column {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .page {
+    padding: 16px;
+  }
+
+  .card {
+    padding: 20px;
+  }
+
+  .twoFields {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .accountOption,
+  .submitButton {
+    transition: none;
+  }
+}

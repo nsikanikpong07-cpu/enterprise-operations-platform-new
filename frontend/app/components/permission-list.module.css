@@ -1,0 +1,177 @@
+.section {
+  margin-top: 28px;
+}
+
+.section h2 {
+  margin: 0 0 8px;
+  color: #173326;
+}
+
+.introduction {
+  margin: 0 0 18px;
+  color: #626a64;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  border: 1px solid #e3e2dc;
+  border-radius: 12px;
+  background: white;
+}
+
+.table {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  text-align: left;
+  font-size: 14px;
+}
+
+.table th {
+  padding: 15px 20px;
+  background: #f5f3ed;
+  color: #25372b;
+  font-weight: 700;
+}
+
+.table th:first-child {
+  width: 60%;
+}
+
+.table th:nth-child(2) {
+  width: 22%;
+}
+
+.table th:nth-child(3) {
+  width: 18%;
+}
+
+.table td {
+  padding: 16px 20px;
+  border-top: 1px solid #eeede8;
+  vertical-align: middle;
+}
+
+.permissionCell {
+  overflow-wrap: anywhere;
+}
+
+.permissionName {
+  color: #203127;
+  text-transform: capitalize;
+}
+
+.description {
+  max-width: 520px;
+  margin: 6px 0 0;
+  color: #626a64;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.feedback {
+  margin: 8px 0 0;
+  color: #4a5c50;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.statusCell,
+.actionCell {
+  white-space: nowrap;
+}
+
+.grantedStatus,
+.notGrantedStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.grantedStatus {
+  background: #e5f2df;
+  color: #245b32;
+}
+
+.notGrantedStatus {
+  background: #fff0ee;
+  color: #922e28;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Permission action buttons */
+.grantButton,
+.removeButton {
+  display: inline-flex;
+  min-width: 90px;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.grantButton {
+  border: 1px solid #a94e2b;
+  background: #a94e2b;
+  color: white;
+}
+
+.grantButton:hover:not(:disabled) {
+  border-color: #853b20;
+  background: #853b20;
+}
+
+.removeButton {
+  border: 1px solid #b33d35;
+  background: white;
+  color: #9a302a;
+}
+
+.removeButton:hover:not(:disabled) {
+  border-color: #902d27;
+  background: #fff0ee;
+  color: #7d2520;
+}
+
+.grantButton:focus-visible,
+.removeButton:focus-visible {
+  outline: 3px solid #e59060;
+  outline-offset: 3px;
+}
+
+.grantButton:disabled,
+.removeButton:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grantButton,
+  .removeButton {
+    transition: none;
+  }
+}

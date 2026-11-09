@@ -1,0 +1,180 @@
+.panel {
+  margin-top: 28px;
+  overflow: hidden;
+  border: 1px solid #eadfd9;
+  border-radius: 16px;
+  background: #fcf2ed;
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 26px;
+  color: #173326;
+  cursor: pointer;
+  list-style: none;
+  transition: background-color 160ms ease;
+}
+
+/* Hide the browser's default triangle. */
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary:hover {
+  background: #f8e8df;
+}
+
+.summary:focus-visible {
+  outline: 3px solid #d77c4f;
+  outline-offset: -4px;
+}
+
+.summaryTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.roleIcon {
+  width: 25px;
+  height: 25px;
+  flex-shrink: 0;
+  color: #b34f29;
+}
+
+.chevron {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: #b34f29;
+  transition: transform 160ms ease;
+}
+
+.panel[open] .chevron {
+  transform: rotate(180deg);
+}
+
+.form {
+  display: grid;
+  gap: 20px;
+  padding: 8px 26px 26px;
+}
+
+.field {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+}
+
+.field label {
+  padding-top: 12px;
+  color: #203127;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.field label span {
+  color: #68736a;
+  font-weight: 400;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #cbd2ca;
+  border-radius: 8px;
+  background: #fff;
+  color: #203127;
+  font: inherit;
+  font-size: 14px;
+}
+
+.field textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.field input:focus,
+.field textarea:focus {
+  border-color: #b34f29;
+  outline: 2px solid #eec4ae;
+  outline-offset: 1px;
+}
+
+.message {
+  margin: 0;
+  color: #315442;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.createButton {
+  min-height: 42px;
+  padding: 10px 20px;
+  border: 1px solid #a94e2b;
+  border-radius: 8px;
+  background: #a94e2b;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.createButton:hover:not(:disabled) {
+  border-color: #853b20;
+  background: #853b20;
+}
+
+.createButton:focus-visible {
+  outline: 3px solid #e59060;
+  outline-offset: 3px;
+}
+
+.createButton:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+@media (max-width: 600px) {
+  .summary {
+    padding: 18px;
+  }
+
+  .form {
+    padding: 4px 18px 20px;
+  }
+
+  .field {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .field label {
+    padding-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .summary,
+  .chevron,
+  .createButton {
+    transition: none;
+  }
+}
