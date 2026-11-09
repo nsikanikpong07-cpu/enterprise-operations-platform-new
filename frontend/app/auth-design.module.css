@@ -1,0 +1,241 @@
+.page {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  overflow: hidden;
+  padding: 32px 20px;
+  background: #f9f4eb;
+  color: #20362a;
+}
+
+.page::before,
+.page::after {
+  position: fixed;
+  z-index: -1;
+  width: min(45vw, 450px);
+  height: min(45vw, 450px);
+  border: 2px solid rgba(185, 95, 59, 0.65);
+  border-radius: 50%;
+  background: rgba(153, 174, 130, 0.18);
+  content: "";
+  pointer-events: none;
+}
+
+.page::before {
+  top: -310px;
+  left: -210px;
+}
+
+.page::after {
+  right: -210px;
+  bottom: -310px;
+}
+
+.card {
+  width: min(100%, 500px);
+  padding: clamp(25px, 5vw, 44px);
+  border: 1px solid #e9e7df;
+  border-radius: 18px;
+  background: white;
+  box-shadow: 0 12px 35px rgba(49, 56, 43, 0.08);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #1f4d36;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+
+.brandMark {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 10px;
+  background: #234b36;
+  color: white;
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+.title {
+  margin: 32px 0 10px;
+  color: #173d29;
+  font-size: clamp(30px, 4vw, 38px);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.introduction {
+  margin: 0 0 26px;
+  color: #626a64;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.form {
+  display: grid;
+  gap: 8px;
+}
+
+.form label {
+  margin-top: 10px;
+  color: #244431;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.form input,
+.form select {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid #aebfb2;
+  border-radius: 8px;
+  background: white;
+  color: #20362a;
+  font: inherit;
+  font-size: 15px;
+}
+
+.form input:focus-visible,
+.form select:focus-visible {
+  outline: 3px solid #e59060;
+  outline-offset: 2px;
+}
+
+.passwordField {
+  position: relative;
+}
+
+.passwordField input {
+  padding-right: 50px;
+}
+
+.passwordToggle {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #315a40;
+  cursor: pointer;
+}
+
+.passwordToggle:hover {
+  background: #f4f1ea;
+}
+
+.passwordToggle:focus-visible {
+  outline: 3px solid #e59060;
+  outline-offset: 0;
+}
+
+.passwordToggle svg {
+  width: 21px;
+  height: 21px;
+}
+
+.passwordHelp {
+  margin: 1px 0 0;
+  color: #626a64;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.submitButton {
+  min-height: 48px;
+  margin-top: 18px;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #234b36;
+  color: white;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 160ms ease;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: #173d29;
+}
+
+.submitButton:focus-visible {
+  outline: 3px solid #e59060;
+  outline-offset: 3px;
+}
+
+.submitButton:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.message {
+  margin: 0 0 15px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f7f2eb;
+  color: #384b3e;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.error {
+  background: #fff0ed;
+  color: #9a3026;
+}
+
+.links {
+  display: grid;
+  gap: 14px;
+  margin-top: 24px;
+  color: #626a64;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.links p {
+  margin: 0;
+}
+
+.links a {
+  color: #234b36;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.links a:hover {
+  color: #a94e2b;
+}
+
+@media (max-width: 520px) {
+  .page {
+    align-items: start;
+    padding: 20px 14px;
+  }
+
+  .card {
+    margin: 10px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .submitButton {
+    transition: none;
+  }
+}

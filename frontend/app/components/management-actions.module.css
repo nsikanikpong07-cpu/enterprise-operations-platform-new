@@ -1,0 +1,77 @@
+.actionGroup {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.dangerOutline,
+.reactivateButton {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 14px;
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.dangerOutline {
+  border: 1px solid #b33d35;
+  color: #9a302a;
+}
+
+.dangerOutline:hover:not(:disabled) {
+  border-color: #902d27;
+  background: #fff0ee;
+}
+
+.reactivateButton {
+  border: 1px solid #3b714a;
+  color: #245b32;
+}
+
+.reactivateButton:hover:not(:disabled) {
+  background: #e8f3e6;
+}
+
+.dangerOutline:focus-visible,
+.reactivateButton:focus-visible {
+  outline: 3px solid #e59060;
+  outline-offset: 3px;
+}
+
+.dangerOutline:disabled,
+.reactivateButton:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.feedback {
+  max-width: 260px;
+  margin: 0;
+  color: #6c3c32;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: normal;
+}
+
+.unavailable {
+  color: #7b857c;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dangerOutline,
+  .reactivateButton {
+    transition: none;
+  }
+}
