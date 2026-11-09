@@ -1,0 +1,174 @@
+.container {
+  margin-left: auto;
+  min-width: 0;
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.iconButton,
+.dangerButton,
+.reactivateButton {
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dedbd5;
+  border-radius: 8px;
+  background: #fff;
+  color: #a94e2b;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.iconButton svg,
+.dangerButton svg,
+.reactivateButton svg {
+  width: 19px;
+  height: 19px;
+}
+
+.iconButton:hover {
+  border-color: #d28b69;
+  background: #faf0eb;
+}
+
+.dangerButton {
+  color: #a8322a;
+}
+
+.dangerButton:hover {
+  border-color: #d27a73;
+  background: #fff0ee;
+}
+
+.reactivateButton {
+  color: #245b32;
+}
+
+.reactivateButton:hover {
+  border-color: #8fba98;
+  background: #e8f3e6;
+}
+
+.iconButton:focus-visible,
+.dangerButton:focus-visible,
+.reactivateButton:focus-visible,
+.addButton:focus-visible,
+.saveButton:focus-visible,
+.cancelButton:focus-visible {
+  outline: 3px solid #e59060;
+  outline-offset: 3px;
+}
+
+.editForm {
+  display: grid;
+  gap: 12px;
+  min-width: min(260px, 100%);
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 10px;
+  background: #faf0eb;
+}
+
+.editForm label {
+  display: grid;
+  gap: 6px;
+  color: #34483a;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.editForm input,
+.editForm select {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #cfcfca;
+  border-radius: 7px;
+  background: #fff;
+  color: #202924;
+  font: inherit;
+}
+
+.editForm input:focus-visible,
+.editForm select:focus-visible {
+  outline: 3px solid #e59060;
+  outline-offset: 2px;
+}
+
+.formButtons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.addButton,
+.saveButton,
+.cancelButton {
+  min-height: 38px;
+  padding: 8px 13px;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.addButton,
+.saveButton {
+  border: 1px solid #a94e2b;
+  background: #a94e2b;
+  color: #fff;
+}
+
+.addButton:hover:not(:disabled),
+.saveButton:hover:not(:disabled) {
+  border-color: #853b20;
+  background: #853b20;
+}
+
+.cancelButton {
+  border: 1px solid #cfcfca;
+  background: #fff;
+  color: #173326;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: #f3f5f2;
+}
+
+.addButton:disabled,
+.saveButton:disabled,
+.cancelButton:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.locationFormContainer {
+  margin-top: 16px;
+}
+
+.message {
+  margin: 10px 0 0;
+  color: #8f3028;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iconButton,
+  .dangerButton,
+  .reactivateButton {
+    transition: none;
+  }
+}

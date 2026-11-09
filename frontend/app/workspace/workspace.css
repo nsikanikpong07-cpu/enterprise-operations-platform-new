@@ -1,0 +1,368 @@
+/* Workspace colors */
+.im-workspace {
+  --im-green: #234b36;
+  --im-green-dark: #183c2b;
+  --im-orange: #a94e2b;
+  --im-cream: #f8f6f1;
+  --im-text: #202924;
+  --im-muted: #5f6862;
+  --im-border: #deded6;
+
+  min-height: 100vh;
+  display: flex;
+  color: var(--im-text);
+  background: var(--im-cream);
+}
+
+/* Sidebar */
+.im-sidebar {
+  width: 250px;
+  flex-shrink: 0;
+  padding: 26px 18px;
+  background: var(--im-green-dark);
+  color: white;
+}
+
+.im-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 6px;
+  color: white;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+}
+
+.im-brand-mark {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 10px;
+  background: #f8f6f1;
+  color: var(--im-green-dark);
+  font-size: 15px;
+  letter-spacing: 0;
+}
+
+.im-sidebar-divider {
+  height: 1px;
+  margin: 24px 6px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.im-navigation {
+  display: grid;
+  gap: 5px;
+}
+
+.im-navigation-heading {
+  margin: 4px 10px 12px;
+  color: #dce9dd;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.im-navigation-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #f6faf7;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.im-navigation-link:hover,
+.im-navigation-link:focus-visible {
+  background: rgba(255, 255, 255, 0.14);
+  color: white;
+}
+
+.im-navigation-icon {
+  display: inline-grid;
+  width: 22px;
+  place-items: center;
+  font-size: 19px;
+  line-height: 1;
+}
+
+/* Top bar and main content */
+.im-workspace-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.im-topbar {
+  display: flex;
+  min-height: 76px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px clamp(20px, 4vw, 44px);
+  border-bottom: 1px solid #e6e3db;
+  background: #fffdfa;
+}
+
+.im-topbar-title {
+  color: #26342b;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.im-signout-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #bdc9be;
+  border-radius: 9px;
+  background: white;
+  color: var(--im-green-dark);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.im-signout-button span {
+  color: var(--im-orange);
+  font-size: 20px;
+}
+
+.im-signout-button:hover {
+  border-color: var(--im-orange);
+  background: #fff6ef;
+}
+
+.im-workspace-content {
+  width: min(100%, 1350px);
+  padding: clamp(28px, 4vw, 54px);
+}
+
+/* Overview */
+.im-overview-label {
+  display: inline-block;
+  margin: 0;
+  padding-bottom: 10px;
+  border-bottom: 3px solid #bd6b45;
+  color: var(--im-green);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.im-overview h1 {
+  margin: 22px 0 14px;
+  color: #17231c;
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+}
+
+.im-overview-intro {
+  max-width: 760px;
+  margin: 0;
+  color: var(--im-muted);
+  font-size: clamp(16px, 2vw, 19px);
+  line-height: 1.6;
+}
+
+.im-section-heading {
+  margin: 34px 0 18px;
+  color: #26342b;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.im-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.im-overview-card {
+  display: flex;
+  min-height: 220px;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 25px;
+  border: 1px solid var(--im-border);
+  border-radius: 12px;
+  background: white;
+  color: var(--im-text);
+  text-decoration: none;
+  box-shadow: 0 5px 18px rgba(35, 45, 37, 0.04);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.im-overview-card:hover,
+.im-overview-card:focus-visible {
+  transform: translateY(-3px);
+  border-color: #bd6b45;
+  background: #fff8f3;
+  box-shadow: 0 10px 24px rgba(95, 61, 42, 0.1);
+}
+
+.im-card-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 10px;
+  background: #f8eee8;
+  color: var(--im-orange);
+  font-size: 25px;
+  line-height: 1;
+}
+
+.im-overview-card h3 {
+  margin: 20px 0 8px;
+  color: #1f2b23;
+  font-size: 19px;
+}
+
+.im-overview-card p {
+  margin: 0 0 20px;
+  color: var(--im-muted);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.im-card-action {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: auto;
+  color: var(--im-orange);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.im-permissions-note {
+  margin: 26px 0 0;
+  color: var(--im-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Make keyboard focus visible against both light and dark backgrounds. */
+.im-workspace :focus-visible {
+  outline: 3px solid #e59060;
+  outline-offset: 3px;
+}
+
+/* Adapt the layout to smaller screens. */
+@media (max-width: 900px) {
+  .im-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .im-workspace {
+    display: block;
+  }
+
+  .im-sidebar {
+    width: 100%;
+    padding: 18px;
+  }
+
+  .im-sidebar-divider {
+    margin: 16px 4px;
+  }
+
+  .im-navigation {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .im-navigation-heading {
+    width: 100%;
+  }
+
+  .im-navigation-link {
+    min-height: 40px;
+    padding: 8px 10px;
+  }
+
+  .im-topbar {
+    min-height: 68px;
+  }
+}
+
+@media (max-width: 520px) {
+  .im-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .im-overview-card {
+    min-height: 190px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .im-navigation-link,
+  .im-signout-button,
+  .im-overview-card {
+    transition: none;
+  }
+
+  .im-overview-card:hover,
+  .im-overview-card:focus-visible {
+    transform: none;
+  }
+}
+
+/* Keep the sidebar and header in place on larger screens. */
+@media (min-width: 701px) {
+  .im-workspace {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .im-sidebar {
+    height: 100%;
+    overflow-y: auto;
+  }
+
+  .im-workspace-main {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+  }
+
+  .im-topbar {
+    flex-shrink: 0;
+  }
+
+  .im-workspace-content {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+}
