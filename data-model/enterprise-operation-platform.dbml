@@ -2,7 +2,7 @@ Project enterprise_operation_platform {
 
   database_type: 'PostgreSQL'
 
-  Note: 'V1 foundational organization, IAM, catalog, vendor, audit, procurement, inventory, and asset schema.'
+ Note: 'V1 foundational organization, IAM, catalog, vendor, audit, procurement, inventory, and asset schema.'
 
 }
 
