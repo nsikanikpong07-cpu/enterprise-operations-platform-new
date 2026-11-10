@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ message: "Invalid request." }, { status: 400 });
   }
-  const baseUrl = process.env.BACKEND_URL ?? "http://127.0.0.1:3001";
+  const baseUrl = process.env.BACKEND_URL ?? "https://enterprise-operations-platform-new.onrender.com";
   try {
     const response = await fetch(`${baseUrl}/auth/login`, {
       method: "POST",
