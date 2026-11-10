@@ -55,7 +55,7 @@ export async function POST(request: Request) {
 
   try {
     const response = await fetch(
-      `${process.env.BACKEND_URL ?? "http://127.0.0.1:3001"}/organization/locations`,
+      `${process.env.BACKEND_URL ?? "https://enterprise-operations-platform-new.onrender.com"}/organization/locations`,
       {
         method: "POST",
         headers: {

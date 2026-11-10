@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   }
   try {
     const response = await fetch(
-      `${process.env.BACKEND_URL ?? "http://127.0.0.1:3001"}/auth/forgot-password`,
+      `${process.env.BACKEND_URL ?? "https://enterprise-operations-platform-new.onrender.com"}/auth/forgot-password`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

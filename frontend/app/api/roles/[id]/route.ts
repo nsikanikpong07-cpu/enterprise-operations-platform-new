@@ -24,7 +24,7 @@ export async function DELETE(
 
   try {
     const response = await fetch(
-      `${process.env.BACKEND_URL ?? "http://127.0.0.1:3001"}/iam/roles/${encodeURIComponent(id)}`,
+      `${process.env.BACKEND_URL ?? "https://enterprise-operations-platform-new.onrender.com"}/iam/roles/${encodeURIComponent(id)}`,
       {
         method: "DELETE",
         headers: {

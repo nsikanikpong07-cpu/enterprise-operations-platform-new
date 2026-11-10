@@ -51,7 +51,7 @@ export async function PATCH(
 
   try {
     const response = await fetch(
-      `${process.env.BACKEND_URL ?? "http://127.0.0.1:3001"}/organization/locations/${encodeURIComponent(id)}`,
+      `${process.env.BACKEND_URL ?? "https://enterprise-operations-platform-new.onrender.com"}/organization/locations/${encodeURIComponent(id)}`,
       {
         method: "PATCH",
         headers: {

@@ -8,7 +8,7 @@ export async function backendGet(
   if (!token) return { status: 401, data: null };
   try {
     const response = await fetch(
-      `${process.env.BACKEND_URL ?? "http://127.0.0.1:3001"}${path}`,
+      `${process.env.BACKEND_URL ?? "https://enterprise-operations-platform-new.onrender.com"}${path}`,
       {
         headers: { Authorization: `Bearer ${token}` },
         cache: "no-store",

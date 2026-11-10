@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     );
   try {
     const response = await fetch(
-      `${process.env.BACKEND_URL ?? "http://127.0.0.1:3001"}/iam/users`,
+      `${process.env.BACKEND_URL ?? "https://enterprise-operations-platform-new.onrender.com"}/iam/users`,
       {
         method: "POST",
         headers: {

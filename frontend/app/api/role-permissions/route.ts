@@ -47,7 +47,7 @@ async function handleChange(request: Request, remove: boolean) {
   const roleId = input.roleId;
   const permissionId = input.permissionId;
 
-  const backendUrl = process.env.BACKEND_URL ?? "http://127.0.0.1:3001";
+  const backendUrl = process.env.BACKEND_URL ?? "https://enterprise-operations-platform-new.onrender.com";
 
   const path = remove
     ? `/iam/roles/${encodeURIComponent(roleId)}/permissions/${encodeURIComponent(permissionId)}`
