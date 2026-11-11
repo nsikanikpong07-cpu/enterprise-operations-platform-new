@@ -12,7 +12,11 @@ export async function POST(request: Request) {
   if (token) {
     try {
       await fetch(
+<<<<<<< HEAD
         `${process.env.BACKEND_URL}/auth/logout`,
+=======
+        `${process.env.FRONTEND_URL ?? ""}/auth/logout`,
+>>>>>>> 110f2d39419ae10baff03054aff98ac41442dfa9
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
