@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   if (token) {
     try {
       await fetch(
-        `${process.env.FRONTEND_URL ?? "https://piva-enterprise-ltd.onrender.com"}/auth/logout`,
+        `${process.env.FRONTEND_URL ?? ""}/auth/logout`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
