@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   if (token) {
     try {
       await fetch(
-        `${process.env.FRONTEND_URL ?? "https://piva-enterprise-ltd.onrender.com"}/auth/logout`,
+        `${process.env.BACKEND_URL}/auth/logout`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -24,5 +24,9 @@ export async function POST(request: Request) {
     }
   }
   jar.delete("enterprise_session");
-  return NextResponse.redirect(new URL("/login", request.url), 303);
+  const proto = request.headers.get("x-forwarded-proto") ?? "https";
+  const host =
+    request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+
+  return NextResponse.redirect(`${proto}://${host}/login`, 303);
 }
