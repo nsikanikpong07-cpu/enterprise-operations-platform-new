@@ -6,7 +6,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { message: "Request origin is not allowed." },
       { status: 403 },
-    );c
+    );
   const jar = await cookies();
   const token = jar.get("enterprise_session")?.value;
   if (token) {
