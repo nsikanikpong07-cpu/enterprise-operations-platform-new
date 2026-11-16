@@ -24,15 +24,15 @@
   flex-shrink: 0;
   place-items: center;
   padding: 7px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border:1px solid rgba(255, 255, 255, 0.4);
   border-radius: 8px;
-  background: transparent;
-  color: #f6faf7;
+  background:transparent;
+  color:#f6faf7;
   cursor: pointer;
 }
 
 .im-sidebar-toggle:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background:rgba(255, 255, 255, 0.14);
 }
 
 .im-sidebar-toggle:focus-visible {
@@ -60,7 +60,7 @@
 /* Highlight the page currently open */
 
 .im-navigation-link-active {
-  background: rgba(255, 255, 255, 0.15);
+  background:rgba(255, 255, 255, 0.15);
   box-shadow: inset 3px 0 0 #e59060;
   font-weight: 700;
 }

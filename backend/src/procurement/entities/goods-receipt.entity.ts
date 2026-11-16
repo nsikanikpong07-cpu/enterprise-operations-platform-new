@@ -7,7 +7,7 @@ import { PurchaseOrder } from './purchase-order.entity.js';
 @Check(`receipt_status IN ('Pending', 'Partially Received', 'Completed')`)
 export class GoodsReceipt extends BaseEntity {
   @Index({ unique: true })
-  @Column({ type: 'varchar', length: 50, nullable: false, unique: true })
+  @Column({ name: 'receipt_number', type: 'varchar', length: 50, nullable: false, unique: true })
   receiptNumber!: string;
 
   @ManyToOne(() => PurchaseOrder, { nullable: false })
@@ -18,13 +18,13 @@ export class GoodsReceipt extends BaseEntity {
   @JoinColumn({ name: 'received_by' })
   receivedBy!: CompanyUser;
 
-  @Column({ type: 'timestamptz', nullable: false, default: () => 'NOW()' })
+  @Column({ name: 'receipt_date', type: 'timestamptz', nullable: false, default: () => 'NOW()' })
   receiptDate!: Date;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
+  @Column({ name: 'delivery_note_number', type: 'varchar', length: 100, nullable: true })
   deliveryNoteNumber?: string;
 
-  @Column({ type: 'varchar', length: 30, nullable: false, default: 'Pending' })
+  @Column({ name: 'receipt_status', type: 'varchar', length: 30, nullable: false, default: 'Pending' })
   receiptStatus!: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })

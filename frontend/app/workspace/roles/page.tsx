@@ -65,15 +65,46 @@ export default async function RolesPage() {
 
   return (
     <section>
-      <p className="im-overview-label">Your workspace</p>
+      <p
+        style={{
+          display: "inline-block",
+          margin: "0 0 18px",
+          paddingBottom: "10px",
+          borderBottom: "3px solid #bd6b45",
+          color: "var(--theme-text-234b36, #234b36)",
+          fontSize: "12px",
+          fontWeight: 700,
+          letterSpacing: "0.15em",
+          textTransform: "uppercase",
+        }}
+      >
+        Your workspace
+      </p>
 
-      <h1>Roles &amp; permissions</h1>
+      <h1
+        style={{
+          margin: "0 0 8px",
+          color: "var(--theme-text-172d21, #172d21)",
+          fontSize: "clamp(32px, 4vw, 46px)",
+          lineHeight: 1.12,
+          letterSpacing: "-0.03em",
+        }}
+      >
+        Roles &amp; permissions
+      </h1>
 
-      <p className="im-overview-intro">
+      <p
+        style={{
+          margin: "0 0 26px",
+          color: "var(--theme-text-626a64, #626a64)",
+          fontSize: "17px",
+          lineHeight: 1.5,
+        }}
+      >
         Manage the roles that define what people can do in your organization.
       </p>
 
-      <div className="table-wrap" style={{ marginTop: "28px" }}>
+      <div className="table-wrap">
         {roles.length === 0 ? (
           <p style={{ padding: "20px" }}>No roles found.</p>
         ) : (
@@ -104,7 +135,7 @@ export default async function RolesPage() {
                           display: "inline-flex",
                           width: "22px",
                           height: "22px",
-                          color: "#b34f29",
+                          color: "var(--theme-text-b34f29, #b34f29)",
                         }}
                       >
                         <WorkspaceIcon name="roles" />

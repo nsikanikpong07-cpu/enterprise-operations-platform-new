@@ -16,7 +16,7 @@ import { Requisition } from './requisition.entity.js';
 @Entity({ schema: 'procurement', name: 'purchase_orders' })
 @Unique(['company', 'poNumber'])
 @Check(
-  `status IN ('Draft', 'Submitted', 'Pending', 'Approved', 'Rejected', 'Cancelled', 'Completed')`,
+  `status IN ('Draft', 'Submitted', 'Pending', 'Approved', 'Rejected', 'Cancelled', 'Completed', 'Issued')`,
 )
 @Check(`total_amount >= 0`)
 export class PurchaseOrder extends BaseEntity {

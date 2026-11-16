@@ -4,21 +4,21 @@
 
 .section h2 {
   margin: 0 0 8px;
-  color: #173326;
+  color:var(--theme-text-173326, #173326);
 }
 
 .introduction {
   margin: 0 0 18px;
-  color: #626a64;
+  color:var(--theme-text-626a64, #626a64);
   font-size: 14px;
   line-height: 1.5;
 }
 
 .tableWrapper {
   overflow-x: auto;
-  border: 1px solid #e3e2dc;
+  border:1px solid var(--theme-border-e3e2dc, #e3e2dc);
   border-radius: 12px;
-  background: white;
+  background:var(--theme-bg-ffffff, white);
 }
 
 .table {
@@ -32,8 +32,8 @@
 
 .table th {
   padding: 15px 20px;
-  background: #f5f3ed;
-  color: #25372b;
+  background:var(--theme-bg-f5f3ed, #f5f3ed);
+  color:var(--theme-text-25372b, #25372b);
   font-weight: 700;
 }
 
@@ -51,7 +51,7 @@
 
 .table td {
   padding: 16px 20px;
-  border-top: 1px solid #eeede8;
+  border-top:1px solid var(--theme-border-eeede8, #eeede8);
   vertical-align: middle;
 }
 
@@ -60,21 +60,21 @@
 }
 
 .permissionName {
-  color: #203127;
+  color:var(--theme-text-203127, #203127);
   text-transform: capitalize;
 }
 
 .description {
   max-width: 520px;
   margin: 6px 0 0;
-  color: #626a64;
+  color:var(--theme-text-626a64, #626a64);
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
 
 .feedback {
   margin: 8px 0 0;
-  color: #4a5c50;
+  color:var(--theme-text-4a5c50, #4a5c50);
   font-size: 13px;
   line-height: 1.5;
   overflow-wrap: anywhere;
@@ -97,13 +97,13 @@
 }
 
 .grantedStatus {
-  background: #e5f2df;
-  color: #245b32;
+  background:var(--theme-bg-e5f2df, #e5f2df);
+  color:var(--theme-text-245b32, #245b32);
 }
 
 .notGrantedStatus {
-  background: #fff0ee;
-  color: #922e28;
+  background:var(--theme-bg-fff0ee, #fff0ee);
+  color:var(--theme-text-922e28, #922e28);
 }
 
 .statusDot {
@@ -111,7 +111,7 @@
   height: 8px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: currentColor;
+  background:currentColor;
 }
 
 /* Permission action buttons */
@@ -135,26 +135,26 @@
 }
 
 .grantButton {
-  border: 1px solid #a94e2b;
-  background: #a94e2b;
-  color: white;
+  border:1px solid #a94e2b;
+  background:#a94e2b;
+  color:white;
 }
 
 .grantButton:hover:not(:disabled) {
-  border-color: #853b20;
-  background: #853b20;
+  border-color:#853b20;
+  background:#853b20;
 }
 
 .removeButton {
-  border: 1px solid #b33d35;
-  background: white;
-  color: #9a302a;
+  border:1px solid #b33d35;
+  background:var(--theme-bg-ffffff, white);
+  color:var(--theme-text-9a302a, #9a302a);
 }
 
 .removeButton:hover:not(:disabled) {
-  border-color: #902d27;
-  background: #fff0ee;
-  color: #7d2520;
+  border-color:#902d27;
+  background:var(--theme-bg-fff0ee, #fff0ee);
+  color:var(--theme-text-7d2520, #7d2520);
 }
 
 .grantButton:focus-visible,
@@ -175,3 +175,7 @@
     transition: none;
   }
 }
+
+/* Dark mode status colours retain readable text and meaning. */
+:global(html[data-theme="dark"]) .grantedStatus { background: #174d34; color: #d8fae4; }
+:global(html[data-theme="dark"]) .notGrantedStatus { background: #63352f; color: #ffe5df; }

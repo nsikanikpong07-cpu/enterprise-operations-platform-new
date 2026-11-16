@@ -17,24 +17,24 @@ export class GoodsReceiptItem extends BaseEntity {
   @JoinColumn({ name: 'purchase_order_item_id' })
   purchaseOrderItem!: PurchaseOrderItem;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, nullable: false })
+  @Column({ name: 'quantity_received', type: 'decimal', precision: 15, scale: 2, nullable: false })
   quantityReceived!: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, nullable: false })
+  @Column({ name: 'quantity_accepted', type: 'decimal', precision: 15, scale: 2, nullable: false })
   quantityAccepted!: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, nullable: false, default: 0 })
+  @Column({ name: 'quantity_rejected', type: 'decimal', precision: 15, scale: 2, nullable: false, default: 0 })
   quantityRejected!: number;
 
-  @Column({ type: 'varchar', length: 500, nullable: true })
+  @Column({ name: 'rejection_reason', type: 'varchar', length: 500, nullable: true })
   rejectionReason?: string;
 
-  @Column({ type: 'varchar', length: 30, nullable: false, default: 'Good' })
+  @Column({ name: 'condition_status', type: 'varchar', length: 30, nullable: false, default: 'Good' })
   conditionStatus!: string;
 
-  @Column({ type: 'varchar', length: 30, nullable: false, default: 'Pending' })
+  @Column({ name: 'inspection_status', type: 'varchar', length: 30, nullable: false, default: 'Pending' })
   inspectionStatus!: string;
 
-  @Column({ type: 'timestamptz', nullable: false, default: () => 'NOW()' })
+  @Column({ name: 'received_date', type: 'timestamptz', nullable: false, default: () => 'NOW()' })
   receivedDate!: Date;
 }

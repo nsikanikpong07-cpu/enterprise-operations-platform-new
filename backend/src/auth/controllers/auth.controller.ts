@@ -28,12 +28,14 @@ import {
 } from "../guards/jwt-auth.guard.js";
 import { PermissionsGuard } from "../guards/permissions.guard.js";
 import { AuthService } from "../providers/auth.service.js";
+import { IamService } from "../../iam/providers/iam.service.js";
 
 @Controller("auth")
 export class AuthController {
   constructor(
     private readonly auth: AuthService,
     private readonly passwords: PasswordSecurityService,
+    private readonly iam: IamService,
   ) {}
 
   // Login is public so users can obtain their access token.
@@ -53,6 +55,15 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   me(@Req() request: AuthenticatedRequest) {
     return request.user;
+  }
+
+  // A signed-in user may only read permissions for their own active membership.
+  @Get("my-permissions")
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  async myPermissions(@Query("companyId", ParseUUIDPipe) companyId: string, @Req() request: AuthenticatedRequest) {
+    const membership = await this.iam.requireActiveCompanyMembership(request.user.id, companyId);
+    return { permissions: await this.iam.permissionsForCompanyUser(membership.id) };
   }
 
   // Checks authentication and active company membership.

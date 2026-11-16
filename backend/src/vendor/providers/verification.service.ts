@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -7,6 +7,8 @@ import {
   UpdateVerificationCaseDto,
 } from '../dto/vendor.dto.js';
 import { SupplierRiskAssessment } from '../entities/supplier-risk-assessment.entity.js';
+import { SupplierDocument } from '../entities/supplier-document.entity.js';
+import { VerificationCheck } from '../entities/verification-check.entity.js';
 import { VerificationCase } from '../entities/verification-case.entity.js';
 
 @Injectable()
@@ -16,6 +18,10 @@ export class VerificationService {
     private readonly cases: Repository<VerificationCase>,
     @InjectRepository(SupplierRiskAssessment)
     private readonly riskAssessments: Repository<SupplierRiskAssessment>,
+    @InjectRepository(SupplierDocument)
+    private readonly supplierDocuments: Repository<SupplierDocument>,
+    @InjectRepository(VerificationCheck)
+    private readonly checks: Repository<VerificationCheck>,
   ) {}
 
   openCase(dto: OpenVerificationCaseDto): Promise<VerificationCase> {
@@ -39,7 +45,7 @@ export class VerificationService {
   async findCase(id: string): Promise<VerificationCase> {
     const vCase = await this.cases.findOne({
       where: { id },
-      relations: { openedBy: true, companyProfile: true },
+      relations: { openedBy: true, companyProfile: { supplier: true } },
     });
     if (!vCase)
       throw new NotFoundException(`VerificationCase ${id} not found`);
@@ -49,12 +55,31 @@ export class VerificationService {
   async updateCase(
     id: string,
     dto: UpdateVerificationCaseDto,
+    reviewerId: string,
   ): Promise<VerificationCase> {
     const vCase = await this.findCase(id);
+    if (dto.status === 'approved' && (!vCase.expiresAt || new Date(vCase.expiresAt).getTime() <= Date.now()))
+      throw new BadRequestException('A future verification expiry date is required for approval');
     Object.assign(vCase, dto);
+    if (dto.status) vCase.verifiedById = dto.status === 'approved' ? reviewerId : null;
     if (dto.status && ['approved', 'rejected'].includes(dto.status))
       vCase.completedAt = new Date();
-    return this.cases.save(vCase);
+    const saved = await this.cases.save(vCase);
+    if (dto.status === 'approved' || dto.status === 'rejected') {
+      await this.checks.update(
+        { verificationCase: { id } },
+        {
+          status: dto.status === 'approved' ? 'passed' : 'failed',
+          checkedBy: { id: reviewerId },
+          checkedAt: new Date(),
+        },
+      );
+      await this.supplierDocuments.update(
+        { supplier: { id: vCase.companyProfile.supplier.id }, documentType: 'CAC registration certificate' },
+        { status: dto.status === 'approved' ? 'valid' : 'rejected' },
+      );
+    }
+    return saved;
   }
 
   assess(dto: CreateRiskAssessmentDto): Promise<SupplierRiskAssessment> {

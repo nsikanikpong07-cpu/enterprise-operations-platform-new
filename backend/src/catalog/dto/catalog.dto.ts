@@ -6,6 +6,7 @@ import {
   IsString,
   IsUUID,
   MaxLength,
+  Matches,
 } from 'class-validator';
 
 export class CreateItemDto {
@@ -31,6 +32,7 @@ export class CreateItemDto {
   @ApiProperty({ type: String, maxLength: 255 })
   @IsString()
   @MaxLength(255)
+  @Matches(/\S/, { message: "Name cannot be blank" })
   name!: string;
 
   @ApiPropertyOptional({ type: String, nullable: true })
@@ -59,6 +61,7 @@ export class UpdateItemDto {
   @IsOptional()
   @IsString()
   @MaxLength(255)
+  @Matches(/\S/, { message: "Name cannot be blank" })
   name?: string;
 
   @ApiPropertyOptional({ type: String, nullable: true })
@@ -95,6 +98,7 @@ export class CreateItemCategoryDto {
   @ApiProperty({ type: String, maxLength: 150 })
   @IsString()
   @MaxLength(150)
+  @Matches(/\S/, { message: "Name cannot be blank" })
   name!: string;
 
   @ApiPropertyOptional({ type: String, nullable: true })
@@ -113,6 +117,7 @@ export class UpdateItemCategoryDto {
   @IsOptional()
   @IsString()
   @MaxLength(150)
+  @Matches(/\S/, { message: "Name cannot be blank" })
   name?: string;
 
   @ApiPropertyOptional({ type: String, nullable: true })

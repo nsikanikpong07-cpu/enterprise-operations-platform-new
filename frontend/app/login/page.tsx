@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 import styles from "../auth-design.module.css";
 
@@ -14,6 +14,8 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [passwordChanged, setPasswordChanged] = useState(false);
+  useEffect(() => { setPasswordChanged(new URLSearchParams(window.location.search).get("passwordChanged") === "1"); }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -64,6 +66,8 @@ export default function LoginPage() {
         <p className={styles.introduction}>
           Enter your work email and password to continue.
         </p>
+
+        {passwordChanged && <p className={styles.message} role="status">Password changed. Please sign in using your new password.</p>}
 
         {error && (
           <p className={`${styles.message} ${styles.error}`} role="alert">

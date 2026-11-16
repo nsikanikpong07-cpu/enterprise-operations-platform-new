@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { WorkspaceIcon } from "../components/workspace-icons";
 import { backendGet } from "../../lib/backend";
+import { myPermissions } from "../../lib/permissions";
 
 export default async function Workspace() {
   const result = await backendGet("/auth/me");
@@ -26,6 +27,7 @@ export default async function Workspace() {
   }
 
   const user = result.data as { firstName?: string } | null;
+  const permissions = await myPermissions();
 
   return (
     <section className="im-overview">
@@ -40,7 +42,7 @@ export default async function Workspace() {
       <h2 className="im-section-heading">Where would you like to go?</h2>
 
       <div className="im-card-grid">
-        <Link className="im-overview-card" href="/workspace/organization">
+        {permissions.includes("manage_organization") && <Link className="im-overview-card" href="/workspace/organization">
           <span className="im-card-icon">
             <WorkspaceIcon name="organization" />
           </span>
@@ -51,9 +53,9 @@ export default async function Workspace() {
           <span className="im-card-action">
             Open organization <span aria-hidden="true">→</span>
           </span>
-        </Link>
+        </Link>}
 
-        <Link className="im-overview-card" href="/workspace/staff">
+        {permissions.includes("manage_iam") && <Link className="im-overview-card" href="/workspace/staff">
           <span className="im-card-icon">
             <WorkspaceIcon name="staff" />
           </span>
@@ -64,9 +66,9 @@ export default async function Workspace() {
           <span className="im-card-action">
             Open staff <span aria-hidden="true">→</span>
           </span>
-        </Link>
+        </Link>}
 
-        <Link className="im-overview-card" href="/workspace/roles">
+        {permissions.includes("manage_iam") && <Link className="im-overview-card" href="/workspace/roles">
           <span className="im-card-icon">
             <WorkspaceIcon name="roles" />
           </span>
@@ -77,7 +79,7 @@ export default async function Workspace() {
           <span className="im-card-action">
             Open roles <span aria-hidden="true">→</span>
           </span>
-        </Link>
+        </Link>}
       </div>
 
       <p className="im-permissions-note">

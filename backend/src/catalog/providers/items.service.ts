@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateItemDto, UpdateItemDto } from '../dto/catalog.dto.js';
@@ -6,6 +6,17 @@ import { Item } from '../entities/item.entity.js';
 
 @Injectable()
 export class ItemsService {
+  private async saveSafely<T>(operation: Promise<T>): Promise<T> {
+    try { return await operation; } catch (error: unknown) {
+      const e = error as { code?: string; constraint?: string; driverError?: { code?: string; constraint?: string } };
+      const dbError = e.driverError ?? e;
+      if (dbError.code === "23505" && dbError.constraint === "uq_items_company_sku") {
+        throw new ConflictException("An item with this SKU already exists in your company.");
+      }
+      throw error;
+    }
+  }
+
   constructor(
     @InjectRepository(Item) private readonly items: Repository<Item>,
   ) {}
@@ -28,14 +39,14 @@ export class ItemsService {
 
   create(dto: CreateItemDto): Promise<Item> {
     const { companyId, categoryId, unitOfMeasureId, ...rest } = dto;
-    return this.items.save(
+    return this.saveSafely(this.items.save(
       this.items.create({
         ...rest,
         company: { id: companyId },
         category: categoryId ? { id: categoryId } : undefined,
         unitOfMeasure: { id: unitOfMeasureId },
       }),
-    );
+    ));
   }
 
   async update(id: string, dto: UpdateItemDto): Promise<Item> {
@@ -44,11 +55,7 @@ export class ItemsService {
     Object.assign(item, rest);
     if (categoryId !== undefined)
       item.category = { id: categoryId } as Item['category'];
-    return this.items.save(item);
+    return this.saveSafely(this.items.save(item));
   }
 
-  async remove(id: string): Promise<void> {
-    const item = await this.findOne(id);
-    await this.items.remove(item);
-  }
 }

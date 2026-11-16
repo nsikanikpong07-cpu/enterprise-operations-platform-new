@@ -1,7 +1,7 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import StaffForm from "../../components/staff-form";
-import StaffDepartmentEditor from "../../components/staff-department-editor";
 import StaffStatusButton from "../../components/staff-status-button";
 
 import { backendGet } from "../../../lib/backend";
@@ -191,13 +191,7 @@ export default async function StaffPage() {
                             status={status}
                           />
 
-                          <StaffDepartmentEditor
-                            membershipId={membership.id}
-                            staffName={fullName}
-                            currentDepartmentId={membership.departmentId}
-                            departments={departments}
-                            departmentsAvailable={departmentsAvailable}
-                          />
+                          <Link className={styles.editDepartmentButton} href={`/workspace/staff/${encodeURIComponent(membership.id)}`} aria-label={`Manage ${fullName}`}>✎</Link>
                         </div>
                       </td>
                     </tr>

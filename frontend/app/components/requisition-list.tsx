@@ -1,0 +1,16 @@
+"use client";
+import Link from "next/link";
+import { useState } from "react";
+import styles from "../workspace/procurement/procurement.module.css";
+
+type Requisition = { id:string; requisitionNumber:string; requestDate?:string|null; status:string; approvalStatus:string; justification?:string|null };
+type Member={id:string;status?:string|null;user?:{firstName?:string|null;lastName?:string|null;email?:string|null}|null};
+type Option={id:string;name:string;isActive?:boolean};
+type Props={canCreate?:boolean;requisitions:Requisition[];items:Option[];units:Option[];departments:Option[];optionsAvailable:boolean;staff:Member[];staffAvailable:boolean};
+function badge(status:string){const name=status.toLowerCase();return name==='approved'||name==='completed'?styles.statusGood:name==='rejected'||name==='cancelled'?styles.statusBad:name==='pending'||name==='submitted'?styles.statusPending:styles.statusNeutral;}
+export default function RequisitionList({requisitions,canCreate=false}:Props){
+ const [query,setQuery]=useState('');const [status,setStatus]=useState('all');const [page,setPage]=useState(1);
+ const filtered=requisitions.filter(r=>[r.requisitionNumber,r.justification].some(v=>v?.toLowerCase().includes(query.trim().toLowerCase()))&&(status==='all'||r.status===status));
+ const total=Math.max(1,Math.ceil(filtered.length/5));const current=Math.min(page,total);const shown=filtered.slice((current-1)*5,current*5);
+ return <section className={styles.card}><div className={styles.head}><h2>Requisitions</h2>{canCreate && <Link className={styles.primaryLink} href="/workspace/procurement/requisitions/new">+ Create requisition</Link>}</div><div className={styles.filters}><label>Search requisitions<input type="search" placeholder="Search number or justification" value={query} onChange={e=>{setQuery(e.target.value);setPage(1)}}/></label><label>Status<select value={status} onChange={e=>{setStatus(e.target.value);setPage(1)}}><option value="all">All statuses</option>{['Draft','Submitted','Pending','Approved','Rejected','Cancelled','Completed'].map(v=><option key={v}>{v}</option>)}</select></label></div><div className={styles.scroll} tabIndex={0} aria-label="Requisitions"><table><thead><tr><th>Requisition</th><th>Request date</th><th>Status</th><th>Approval status</th><th>Action</th></tr></thead><tbody>{shown.map(r=><tr key={r.id}><td>{r.requisitionNumber}</td><td>{r.requestDate?String(r.requestDate).slice(0,10):'Not provided'}</td><td><span className={badge(r.status)}>{r.status}</span></td><td><span className={badge(r.approvalStatus)}>{r.approvalStatus}</span></td><td><Link href={`/workspace/procurement/requisitions/${encodeURIComponent(r.id)}`}>View details</Link></td></tr>)}</tbody></table>{shown.length===0&&<p className={styles.empty}>{requisitions.length?'No requisitions match your search.':'No requisitions have been created yet.'}</p>}</div><div className={styles.pagination}><span>{filtered.length?`Showing ${(current-1)*5+1}–${Math.min(current*5,filtered.length)} of ${filtered.length}`:'0 requisitions'}</span><div><button type="button" disabled={current===1} onClick={()=>setPage(current-1)}>Previous</button><span> Page {current} of {total} </span><button type="button" disabled={current===total} onClick={()=>setPage(current+1)}>Next</button></div></div></section>;
+}

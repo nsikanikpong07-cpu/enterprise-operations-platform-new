@@ -1,3 +1,6 @@
+import { ProcurementReadGuard } from "./guards/procurement-read.guard.js";
+import { VendorPlatformGuard } from "./guards/vendor-platform.guard.js";
+import { CatalogAccessGuard } from "./guards/catalog-access.guard.js";
 import { ACCESS_TOKEN_LIFETIME_SECONDS } from "./token-config.js";
 import { AuthRateLimitModule } from "./auth-rate-limit.module.js";
 import { OrganizationAccessGuard } from "./guards/organization-access.guard.js";
@@ -8,6 +11,7 @@ import { PasswordMailService } from "./providers/password-mail.service.js";
 import { PasswordSecurityService } from "./providers/password-security.service.js";
 import { APP_GUARD } from "@nestjs/core";
 import { IamAccessGuard } from "./guards/iam-access.guard.js";
+import { VendorHubAccessGuard } from "./guards/vendor-hub-access.guard.js";
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { JwtModule } from "@nestjs/jwt";
@@ -68,6 +72,10 @@ import { PermissionsGuard } from "./guards/permissions.guard.js";
     PermissionsGuard,
     { provide: APP_GUARD, useClass: IamAccessGuard },
     { provide: APP_GUARD, useClass: OrganizationAccessGuard },
+    { provide: APP_GUARD, useClass: CatalogAccessGuard },
+    { provide: APP_GUARD, useClass: ProcurementReadGuard },
+    { provide: APP_GUARD, useClass: VendorPlatformGuard },
+    { provide: APP_GUARD, useClass: VendorHubAccessGuard },
   ],
 
   exports: [

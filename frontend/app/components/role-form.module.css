@@ -1,9 +1,9 @@
 .panel {
   margin-top: 28px;
   overflow: hidden;
-  border: 1px solid #eadfd9;
+  border:1px solid var(--theme-border-eadfd9, #eadfd9);
   border-radius: 16px;
-  background: #fcf2ed;
+  background:var(--theme-bg-fcf2ed, #fcf2ed);
 }
 
 .summary {
@@ -12,7 +12,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 22px 26px;
-  color: #173326;
+  color:var(--theme-text-173326, #173326);
   cursor: pointer;
   list-style: none;
   transition: background-color 160ms ease;
@@ -24,7 +24,7 @@
 }
 
 .summary:hover {
-  background: #f8e8df;
+  background:var(--theme-bg-f8e8df, #f8e8df);
 }
 
 .summary:focus-visible {
@@ -44,14 +44,14 @@
   width: 25px;
   height: 25px;
   flex-shrink: 0;
-  color: #b34f29;
+  color:var(--theme-text-b34f29, #b34f29);
 }
 
 .chevron {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
-  color: #b34f29;
+  color:var(--theme-text-b34f29, #b34f29);
   transition: transform 160ms ease;
 }
 
@@ -74,13 +74,13 @@
 
 .field label {
   padding-top: 12px;
-  color: #203127;
+  color:var(--theme-text-203127, #203127);
   font-size: 14px;
   font-weight: 700;
 }
 
 .field label span {
-  color: #68736a;
+  color:var(--theme-text-68736a, #68736a);
   font-weight: 400;
 }
 
@@ -89,10 +89,10 @@
   width: 100%;
   box-sizing: border-box;
   padding: 12px 14px;
-  border: 1px solid #cbd2ca;
+  border:1px solid var(--theme-border-cbd2ca, #cbd2ca);
   border-radius: 8px;
-  background: #fff;
-  color: #203127;
+  background:var(--theme-bg-ffffff, #fff);
+  color:var(--theme-text-203127, #203127);
   font: inherit;
   font-size: 14px;
 }
@@ -104,14 +104,14 @@
 
 .field input:focus,
 .field textarea:focus {
-  border-color: #b34f29;
+  border-color:#b34f29;
   outline: 2px solid #eec4ae;
   outline-offset: 1px;
 }
 
 .message {
   margin: 0;
-  color: #315442;
+  color:var(--theme-text-315442, #315442);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -124,10 +124,10 @@
 .createButton {
   min-height: 42px;
   padding: 10px 20px;
-  border: 1px solid #a94e2b;
+  border:1px solid #a94e2b;
   border-radius: 8px;
-  background: #a94e2b;
-  color: #fff;
+  background:#a94e2b;
+  color:#fff;
   font: inherit;
   font-size: 14px;
   font-weight: 700;
@@ -138,8 +138,8 @@
 }
 
 .createButton:hover:not(:disabled) {
-  border-color: #853b20;
-  background: #853b20;
+  border-color:#853b20;
+  background:#853b20;
 }
 
 .createButton:focus-visible {

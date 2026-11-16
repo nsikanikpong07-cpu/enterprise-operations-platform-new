@@ -14,8 +14,7 @@ export class Requisition extends BaseEntity {
   @JoinColumn({ name: 'company_id' })
   company!: Company;
 
-  @Index({ unique: true })
-  @Column({name: 'requisition_number', type: 'varchar', length: 50, nullable: false, unique: true })
+  @Column({name: 'requisition_number', type: 'varchar', length: 50, nullable: false })
   requisitionNumber!: string;
 
   @ManyToOne(() => CompanyUser, { nullable: false })
@@ -44,4 +43,7 @@ export class Requisition extends BaseEntity {
 
   @Column({ name: 'total_estimated_amount', type: 'decimal', precision: 15, scale: 2, nullable: true })
   totalEstimatedAmount?: number;
+
+  @Column({ type: 'varchar', length: 3, nullable: true, default: 'NGN' })
+  currency?: string | null;
 }

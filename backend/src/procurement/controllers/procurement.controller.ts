@@ -8,7 +8,9 @@ import {
   Patch,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
+import type { CompanyAuthenticatedRequest } from '../../auth/guards/company-access.guard.js';
 import {
   CreateGoodsReceiptDto,
   CreatePurchaseOrderDto,
@@ -20,14 +22,20 @@ import { ProcurementService } from '../providers/procurement.service.js';
 export class ProcurementController {
   constructor(private readonly procurement: ProcurementService) {}
 
+  @Get('eligible-suppliers')
+  eligibleSuppliers(@Query('companyId', ParseUUIDPipe) companyId: string) {
+    return this.procurement.eligibleSuppliers(companyId);
+  }
+
   @Get('purchase-orders')
   findOrders(@Query('companyId', ParseUUIDPipe) companyId: string) {
     return this.procurement.findOrders(companyId);
   }
 
   @Get('purchase-orders/:id')
-  findOrder(@Param('id', ParseUUIDPipe) id: string) {
-    return this.procurement.findOrder(id);
+  async findOrder(@Param('id', ParseUUIDPipe) id: string, @Req() request: CompanyAuthenticatedRequest & { canIssueOrder?: boolean; canReceiveGoods?: boolean }) {
+    const order = await this.procurement.findOrder(id);
+    return { ...order, canIssueOrder: request.canIssueOrder === true, canReceiveGoods: request.canReceiveGoods === true };
   }
 
   @Get('purchase-orders/:id/items')
@@ -39,6 +47,11 @@ export class ProcurementController {
   @ApiBody({ type: CreatePurchaseOrderDto })
   createOrder(@Body() dto: CreatePurchaseOrderDto) {
     return this.procurement.createOrder(dto);
+  }
+
+  @Post('purchase-orders/:id/issue')
+  issueOrder(@Param('id', ParseUUIDPipe) id: string) {
+    return this.procurement.issueOrder(id);
   }
 
   @Patch('purchase-orders/:id')
@@ -54,6 +67,16 @@ export class ProcurementController {
   @ApiBody({ type: CreateGoodsReceiptDto })
   createReceipt(@Body() dto: CreateGoodsReceiptDto) {
     return this.procurement.createReceipt(dto);
+  }
+
+  @Get('goods-receipts')
+  findReceipts(@Query('companyId', ParseUUIDPipe) companyId: string) {
+    return this.procurement.findReceipts(companyId);
+  }
+
+  @Get('goods-receipts/:id')
+  findReceipt(@Param('id', ParseUUIDPipe) id: string) {
+    return this.procurement.findReceipt(id);
   }
 
   @Get('purchase-orders/:id/receipts')

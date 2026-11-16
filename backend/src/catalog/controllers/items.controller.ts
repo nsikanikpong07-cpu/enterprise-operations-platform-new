@@ -2,7 +2,6 @@ import { ApiBody } from "@nestjs/swagger";
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -39,8 +38,4 @@ export class ItemsController {
     return this.items.update(id, dto);
   }
 
-  @Delete(':id')
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.items.remove(id);
-  }
 }

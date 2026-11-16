@@ -13,7 +13,7 @@
   justify-content: center;
   padding: 7px 14px;
   border-radius: 8px;
-  background: #fff;
+  background:var(--theme-bg-ffffff, #fff);
   font: inherit;
   font-size: 13px;
   font-weight: 700;
@@ -26,22 +26,22 @@
 }
 
 .dangerOutline {
-  border: 1px solid #b33d35;
-  color: #9a302a;
+  border:1px solid #b33d35;
+  color:var(--theme-text-9a302a, #9a302a);
 }
 
 .dangerOutline:hover:not(:disabled) {
-  border-color: #902d27;
-  background: #fff0ee;
+  border-color:#902d27;
+  background:var(--theme-bg-fff0ee, #fff0ee);
 }
 
 .reactivateButton {
-  border: 1px solid #3b714a;
-  color: #245b32;
+  border:1px solid #3b714a;
+  color:var(--theme-text-245b32, #245b32);
 }
 
 .reactivateButton:hover:not(:disabled) {
-  background: #e8f3e6;
+  background:var(--theme-bg-e8f3e6, #e8f3e6);
 }
 
 .dangerOutline:focus-visible,
@@ -59,14 +59,14 @@
 .feedback {
   max-width: 260px;
   margin: 0;
-  color: #6c3c32;
+  color:var(--theme-text-6c3c32, #6c3c32);
   font-size: 13px;
   line-height: 1.4;
   white-space: normal;
 }
 
 .unavailable {
-  color: #7b857c;
+  color:var(--theme-text-7b857c, #7b857c);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -85,6 +85,11 @@ export class OrganizationAccessGuard implements CanActivate {
       req.user.id,
       companyId,
     );
+    if (req.method === "GET" && (action === "findDepartments" || action === "findLocations")) {
+      const permissions = await this.iam.permissionsForCompanyUser(member.id);
+      const allowed = action === "findDepartments" ? ["manage_organization", "manage_iam", "create_requisition"] : ["manage_organization"];
+      if (!allowed.some(permission => permissions.includes(permission))) throw new ForbiddenException("Organization access is required");
+    }
     if (req.method !== "GET") {
       const permissions = await this.iam.permissionsForCompanyUser(member.id);
       if (!permissions.includes("manage_organization"))
