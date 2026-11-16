@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -11,6 +11,17 @@ import { UnitOfMeasure } from '../entities/unit-of-measure.entity.js';
 
 @Injectable()
 export class CatalogService {
+  private async saveSafely<T>(operation: Promise<T>): Promise<T> {
+    try { return await operation; } catch (error: unknown) {
+      const e = error as { code?: string; constraint?: string; driverError?: { code?: string; constraint?: string } };
+      const dbError = e.driverError ?? e;
+      if (dbError.code === "23505" && dbError.constraint === "uq_item_categories_company_name") {
+        throw new ConflictException("A category with this name already exists in your company.");
+      }
+      throw error;
+    }
+  }
+
   constructor(
     @InjectRepository(ItemCategory)
     private readonly categories: Repository<ItemCategory>,
@@ -38,13 +49,13 @@ export class CatalogService {
 
   createCategory(dto: CreateItemCategoryDto): Promise<ItemCategory> {
     const { companyId, parentId, ...rest } = dto;
-    return this.categories.save(
+    return this.saveSafely(this.categories.save(
       this.categories.create({
         ...rest,
         company: { id: companyId },
         parent: parentId ? { id: parentId } : undefined,
       }),
-    );
+    ));
   }
 
   async updateCategory(
@@ -55,8 +66,8 @@ export class CatalogService {
     const { parentId, ...rest } = dto;
     Object.assign(category, rest);
     if (parentId !== undefined)
-      category.parent = { id: parentId } as ItemCategory['parent'];
-    return this.categories.save(category);
+      category.parent = (parentId === null ? null : { id: parentId }) as ItemCategory['parent'];
+    return this.saveSafely(this.categories.save(category));
   }
 
   async removeCategory(id: string): Promise<void> {

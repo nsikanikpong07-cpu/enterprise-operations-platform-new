@@ -6,6 +6,7 @@ import {
   IsIn,
   IsInt,
   IsNumber,
+  Matches,
   IsOptional,
   IsString,
   IsUUID,
@@ -17,6 +18,9 @@ import {
 import { Type } from 'class-transformer';
 
 export class RequisitionItemDto {
+  @IsOptional()
+  @IsUUID()
+  id?: string;
   @ApiProperty({ type: String, format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000' })
   @IsUUID()
   itemId!: string;
@@ -24,10 +28,11 @@ export class RequisitionItemDto {
   @ApiProperty({ type: String, maxLength: 500 })
   @IsString()
   @MaxLength(500)
+  @Matches(/\S/, { message: "Item description cannot be blank" })
   description!: string;
 
   @ApiProperty({ type: Number, minimum: 0.01 })
-  @IsNumber()
+  @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0.01)
   quantityRequested!: number;
 
@@ -48,6 +53,11 @@ export class RequisitionItemDto {
 }
 
 export class CreateRequisitionDto {
+  @ApiPropertyOptional({ type: String, description: 'Three-letter currency code', example: 'NGN' })
+  @IsOptional()
+  @IsString()
+  @Matches(/^[A-Z]{3}$/)
+  currency?: string;
   @ApiProperty({ type: String, format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000' })
   @IsUUID()
   companyId!: string;
@@ -55,6 +65,7 @@ export class CreateRequisitionDto {
   @ApiProperty({ type: String, maxLength: 50 })
   @IsString()
   @MaxLength(50)
+  @Matches(/\S/, { message: "Requisition number cannot be blank" })
   requisitionNumber!: string;
 
   @ApiProperty({ type: String, format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000' })
@@ -74,6 +85,7 @@ export class CreateRequisitionDto {
   @ApiProperty({ type: String, maxLength: 500 })
   @IsString()
   @MaxLength(500)
+  @Matches(/\S/, { message: "Justification cannot be blank" })
   justification!: string;
 
   @ApiProperty({ type: () => RequisitionItemDto, isArray: true, minItems: 1 })
@@ -85,24 +97,29 @@ export class CreateRequisitionDto {
 }
 
 export class UpdateRequisitionDto {
-  @ApiPropertyOptional({ type: String, nullable: true, enum: [ 'Draft', 'Submitted', 'Pending', 'Approved', 'Rejected', 'Cancelled', 'Completed', ] })
-  @IsOptional()
-  @IsIn([
-    'Draft',
-    'Submitted',
-    'Pending',
-    'Approved',
-    'Rejected',
-    'Cancelled',
-    'Completed',
-  ])
-  status?: string;
-
-  @ApiPropertyOptional({ type: String, nullable: true, maxLength: 500 })
-  @IsOptional()
+  @ApiProperty({ type: String, maxLength: 500 })
   @IsString()
   @MaxLength(500)
-  justification?: string;
+  @Matches(/\S/, { message: "Justification cannot be blank" })
+  justification!: string;
+
+  @IsOptional()
+  @IsUUID()
+  departmentId?: string | null;
+
+  @IsOptional()
+  @IsDateString()
+  requiredDate?: string | null;
+
+  @IsString()
+  @Matches(/^[A-Z]{3}$/)
+  currency!: string;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => RequisitionItemDto)
+  items!: RequisitionItemDto[];
 }
 
 export class CreateApprovalDto {
@@ -154,7 +171,7 @@ export class PurchaseOrderItemDto {
   description!: string;
 
   @ApiProperty({ type: Number, minimum: 0.01 })
-  @IsNumber()
+  @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0.01)
   quantityOrdered!: number;
 
@@ -252,18 +269,18 @@ export class GoodsReceiptItemDto {
   purchaseOrderItemId!: string;
 
   @ApiProperty({ type: Number, minimum: 0 })
-  @IsNumber()
+  @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
   quantityReceived!: number;
 
   @ApiProperty({ type: Number, minimum: 0 })
-  @IsNumber()
+  @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
   quantityAccepted!: number;
 
   @ApiPropertyOptional({ type: Number, nullable: true, minimum: 0 })
   @IsOptional()
-  @IsNumber()
+  @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
   quantityRejected?: number;
 
@@ -272,6 +289,20 @@ export class GoodsReceiptItemDto {
   @IsString()
   @MaxLength(500)
   rejectionReason?: string;
+
+  @ApiPropertyOptional({ type: String, maxLength: 30, default: 'Good' })
+  @IsOptional()
+  @IsString()
+  @Matches(/\S/)
+  @MaxLength(30)
+  conditionStatus?: string;
+
+  @ApiPropertyOptional({ type: String, maxLength: 30, default: 'Pending' })
+  @IsOptional()
+  @IsString()
+  @Matches(/\S/)
+  @MaxLength(30)
+  inspectionStatus?: string;
 }
 
 export class CreateGoodsReceiptDto {

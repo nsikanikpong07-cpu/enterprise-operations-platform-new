@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import DepartmentForm from "../../components/department-form";
@@ -74,7 +75,7 @@ function Records({ title, status, data }: RecordsProps) {
             </span>
 
             <div>
-              <p className={styles.recordName}>{entry.name}</p>
+              <p className={styles.recordName}>{title === "Departments" ? <Link href={`/workspace/organization/departments/${encodeURIComponent(entry.id)}`}>{entry.name}</Link> : entry.name}</p>
 
               {title === "Departments" && entry.code && (
                 <p className={styles.recordDetail}>Code: {entry.code}</p>

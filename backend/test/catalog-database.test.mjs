@@ -1,0 +1,43 @@
+import 'reflect-metadata';
+import { test, before, after } from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { embeddedDataSource } from './support/embedded-postgres.mjs';
+import { CatalogAccessGuard } from '../dist/auth/guards/catalog-access.guard.js';
+import { CatalogController } from '../dist/catalog/controllers/catalog.controller.js';
+import { ItemsController } from '../dist/catalog/controllers/items.controller.js';
+import { CatalogService } from '../dist/catalog/providers/catalog.service.js';
+import { ItemsService } from '../dist/catalog/providers/items.service.js';
+import { ItemCategory } from '../dist/catalog/entities/item-category.entity.js';
+import { Item } from '../dist/catalog/entities/item.entity.js';
+import { UnitOfMeasure } from '../dist/catalog/entities/unit-of-measure.entity.js';
+let env,a,b,user,categoryA,categoryB,unit,catalog,items;
+before(async()=>{
+ env=await embeddedDataSource(await readFile(new URL('./support/database-schema.sql',import.meta.url),'utf8'),[fileURLToPath(new URL('../dist/**/*.entity.js',import.meta.url))]);
+ const q=(sql,args=[])=>env.source.query(sql,args);
+ [a]=(await q("INSERT INTO organization.companies(name) VALUES ('A') RETURNING id"));
+ [b]=(await q("INSERT INTO organization.companies(name) VALUES ('B') RETURNING id"));
+ [user]=(await q("INSERT INTO iam.users(email,password_hash,first_name,last_name) VALUES ('a@example.org','hash','A','B') RETURNING id"));
+ await q("INSERT INTO iam.company_users(company_id,user_id) VALUES ($1,$2)",[a.id,user.id]);
+ [unit]=await q("INSERT INTO catalog.units_of_measure(code,name) VALUES ('EA','Each') RETURNING id");
+ [categoryA]=await q("INSERT INTO catalog.item_categories(company_id,name) VALUES ($1,'Parts') RETURNING id",[a.id]);
+ [categoryB]=await q("INSERT INTO catalog.item_categories(company_id,name) VALUES ($1,'Parts') RETURNING id",[b.id]);
+ catalog=new CatalogService(env.source.getRepository(ItemCategory),env.source.getRepository(UnitOfMeasure));
+ items=new ItemsService(env.source.getRepository(Item));
+});
+after(async()=>{await env?.close()});
+function access(controller,action,req) {
+ const jwt={canActivate:async()=>true};
+ const iam={requireActiveCompanyMembership:async()=>({id:'member'}),permissionsForCompanyUser:async()=>['manage_catalog']};
+ const context={getClass:()=>controller,getHandler:()=>({name:action}),switchToHttp:()=>({getRequest:()=>req})};
+ return new CatalogAccessGuard(jwt,iam,env.source).canActivate(context);
+}
+const request=(method,body={},query={},id=categoryA?.id)=>({user:{id:user.id},method,body,query,params:{id}});
+test('company A cannot view company B category',async()=>assert.rejects(access(CatalogController,'findCategory',request('GET',{}, {},categoryB.id)),/not found/));
+test('company A cannot use company B category for an item',async()=>assert.rejects(access(ItemsController,'create',request('POST',{companyId:a.id,categoryId:categoryB.id})),/not found/));
+test('company A cannot set company B as parent',async()=>assert.rejects(access(CatalogController,'createCategory',request('POST',{companyId:a.id,parentId:categoryB.id})),/not found/));
+test('category name unique per company; same name allowed in another',async()=>{await assert.rejects(catalog.createCategory({companyId:a.id,name:'Parts'}),/already exists/); assert.ok(categoryB.id)});
+test('sku unique per company; defaults and deactivation',async()=>{const i=await items.create({companyId:a.id,name:'Desk',unitOfMeasureId:unit.id,sku:'D1'}); assert.equal(i.itemType,'material');assert.equal(i.isActive,true);assert.equal(i.isStockable,true);await assert.rejects(items.create({companyId:a.id,name:'Second',unitOfMeasureId:unit.id,sku:'D1'}),/already exists/);const other=await items.create({companyId:b.id,name:'Desk',unitOfMeasureId:unit.id,sku:'D1'});assert.ok(other.id);await items.update(i.id,{isActive:false});assert.equal((await items.findOne(i.id)).isActive,false)});
+test('category cannot be own parent',async()=>assert.rejects(access(CatalogController,'updateCategory',request('PATCH',{parentId:categoryA.id}, {},categoryA.id)),/own parent/));
+test('category cannot move underneath a descendant',async()=>{const [child]=await env.source.query("INSERT INTO catalog.item_categories(company_id,parent_id,name) VALUES ($1,$2,'Child') RETURNING id",[a.id,categoryA.id]);await assert.rejects(access(CatalogController,'updateCategory',request('PATCH',{parentId:child.id},{},categoryA.id)),/descendant/)});

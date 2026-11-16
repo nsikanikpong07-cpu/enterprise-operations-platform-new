@@ -9,4 +9,7 @@ export class UnitOfMeasure extends BaseEntity {
 
   @Column({ type: 'varchar', length: 100, nullable: false })
   name!: string;
+
+  @Column({ name: 'allows_fractional', type: 'boolean', nullable: true })
+  allowsFractional?: boolean | null;
 }

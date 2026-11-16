@@ -34,15 +34,18 @@ const navigation: NavigationItem[] = [
     icon: "catalog",
   },
   {
-    href: "/workspace/suppliers",
-    label: "Suppliers",
+    href: "/workspace/vendor-hub",
+    label: "Vendor Hub",
     icon: "suppliers",
   },
+  { href: "/workspace/suppliers", label: "My suppliers", icon: "suppliers" },
+  { href: "/workspace/supplier-review", label: "Verification queue", icon: "audit" },
   {
     href: "/workspace/procurement",
     label: "Procurement",
     icon: "procurement",
   },
+  { href: "/workspace/procurement/requisitions", label: "Requisitions", icon: "procurement" },
   {
     href: "/workspace/audit",
     label: "Audit trail",
@@ -50,7 +53,10 @@ const navigation: NavigationItem[] = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ permissions, platformReviewer }: { permissions: string[]; platformReviewer: boolean }) {
+  const has = (...names: string[]) => names.some(name => permissions.includes(name));
+  const hubAccess = has("manage_catalog", "create_requisition", "create_purchase_order");
+  const allowed = (href: string) => href === "/workspace" || (href === "/workspace/organization" && has("manage_organization")) || (["/workspace/staff", "/workspace/roles", "/workspace/audit"].includes(href) && has("manage_iam")) || (href === "/workspace/catalog" && has("manage_catalog")) || (["/workspace/vendor-hub", "/workspace/suppliers"].includes(href) && hubAccess) || (href === "/workspace/supplier-review" && platformReviewer) || (href === "/workspace/procurement" && has("approve_requisition", "create_purchase_order", "receive_goods")) || (href === "/workspace/procurement/requisitions" && has("create_requisition") && !has("approve_requisition", "create_purchase_order", "receive_goods"));
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
@@ -93,7 +99,7 @@ export default function Sidebar() {
       >
         {!collapsed && <p className="im-navigation-heading">Workspace</p>}
 
-        {navigation.map((item) => {
+        {navigation.filter(item => allowed(item.href)).map((item) => {
           const active =
             item.href === "/workspace"
               ? pathname === item.href

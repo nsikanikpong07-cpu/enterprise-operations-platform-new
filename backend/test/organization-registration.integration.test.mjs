@@ -5,6 +5,8 @@ import assert from "node:assert/strict";
 import { before, after, test } from "node:test";
 import { embeddedDataSource } from "./support/embedded-postgres.mjs";
 import { RegistrationService } from "../dist/organization/providers/registration.service.js";
+import { AddCatalogPermission1791760200000 } from "../dist/database/migrations/1791760200000-AddCatalogPermission.js";
+import { AddRequisitionPermission1791760800000 } from "../dist/database/migrations/1791760800000-AddRequisitionPermission.js";
 import { AddOrganizationRegistration1791759600000 } from "../dist/database/migrations/1791759600000-AddOrganizationRegistration.js";
 import { passwordHasherProvider } from "../dist/iam/providers/password-hasher.provider.js";
 import { AuditWriterService } from "../dist/audit/providers/audit-writer.service.js";
@@ -61,13 +63,23 @@ before(async () => {
   await new AddOrganizationRegistration1791759600000().up(
     env.source.createQueryRunner(),
   );
+  await new AddCatalogPermission1791760200000().up(env.source.createQueryRunner());
+  await new AddRequisitionPermission1791760800000().up(env.source.createQueryRunner());
   const backfill = await env.source.query(
     "SELECT p.name FROM iam.role_permissions rp JOIN iam.permissions p ON p.id=rp.permission_id WHERE role_id=$1 ORDER BY p.name",
     [legacyRole[0].id],
   );
   assert.deepEqual(
     backfill.map((x) => x.name),
-    ["manage_iam", "manage_organization"],
+    [
+      "approve_requisition",
+      "create_purchase_order",
+      "create_requisition",
+      "manage_catalog",
+      "manage_iam",
+      "manage_organization",
+      "receive_goods",
+    ],
   );
 });
 after(async () => {
@@ -84,7 +96,15 @@ test("company registration persists its owner, role, membership and both initial
   );
   assert.deepEqual(
     grants.map((x) => x.name),
-    ["manage_iam", "manage_organization"],
+    [
+      "approve_requisition",
+      "create_purchase_order",
+      "create_requisition",
+      "manage_catalog",
+      "manage_iam",
+      "manage_organization",
+      "receive_goods",
+    ],
   );
   const stored = await env.source
     .getRepository(User)
@@ -346,7 +366,7 @@ test("department/location creation and audit use the authorized company; foreign
   );
   assert.equal(logs[0].user_id, registered.user.id);
 });
-test("ordinary staff can read their workspace but cannot alter company, departments or locations", async () => {
+test("ordinary staff can read their company but cannot access departments or alter organization data", async () => {
   const staff = await env.source.getRepository(User).save({
     email: "ordinary@example.com",
     passwordHash: await hasher.hash("Integration-Demo-2026!"),
@@ -371,7 +391,7 @@ test("ordinary staff can read their workspace but cannot alter company, departme
   await request(app.getHttpServer())
     .get(`/organization/companies/${registered.company.id}/departments`)
     .set(auth(staffToken))
-    .expect(200);
+    .expect(403);
   await request(app.getHttpServer())
     .patch(`/organization/companies/${registered.company.id}`)
     .set(auth(staffToken))

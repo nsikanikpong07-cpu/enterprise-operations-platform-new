@@ -1,3 +1,4 @@
+import type { CompanyAuthenticatedRequest } from '../../auth/guards/company-access.guard.js';
 import { ApiBody } from "@nestjs/swagger";
 import {
   Body,
@@ -8,6 +9,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import {
   CreateApprovalDto,
@@ -28,6 +30,20 @@ export class ApprovalsController {
   @Get()
   forRequisition(@Query('requisitionId', ParseUUIDPipe) requisitionId: string) {
     return this.approvals.forRequisition(requisitionId);
+  }
+
+  @Get('pending/me')
+  pendingForSelf(@Req() request: CompanyAuthenticatedRequest) {
+    return this.approvals.pendingForCompany(request.companyMembership!.company.id, request.companyMembership!.id);
+  }
+
+  @Post('requisitions/:id/decision')
+  decideRequisition(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: DecideApprovalDto,
+    @Req() request: CompanyAuthenticatedRequest,
+  ) {
+    return this.approvals.decideRequisition(id, request.companyMembership!.id, dto);
   }
 
   @Get('pending')

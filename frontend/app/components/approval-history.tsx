@@ -1,0 +1,9 @@
+"use client";
+import { useState } from "react";
+import styles from "../workspace/procurement/procurement.module.css";
+type Entry={id:string;approvalStatus:string;approvalDate?:string|null;comments?:string|null;rejectionReason?:string|null;approver?:{user?:{firstName?:string;lastName?:string}|null}|null};
+export default function ApprovalHistory({requisitionId}:{requisitionId:string}){
+ const [open,setOpen]=useState(false);const [entries,setEntries]=useState<Entry[]>([]);const [message,setMessage]=useState("");const [loading,setLoading]=useState(false);
+ async function toggle(){if(open){setOpen(false);return}setOpen(true);setLoading(true);setMessage("");try{const response=await fetch(`/api/procurement-data?kind=approvals&id=${encodeURIComponent(requisitionId)}`,{cache:"no-store"});const data=await response.json();if(!response.ok||!Array.isArray(data)){setMessage(typeof data?.message==="string"?data.message:"Could not load approval history.");return}setEntries(data)}catch{setMessage("Could not load approval history.")}finally{setLoading(false)}}
+ return <div><button className={styles.disclosureButton} type="button" onClick={toggle} aria-expanded={open}>Approval outcome</button>{open&&(loading?<p>Loading…</p>:message?<p role="status">{message}</p>:entries.length?<ul>{entries.map(entry=><li key={entry.id}>{entry.approvalStatus==='Pending'?'Previous assignment — no decision recorded':entry.approvalStatus}{entry.approvalStatus!=='Pending'&&<p>Decided by: {[entry.approver?.user?.firstName,entry.approver?.user?.lastName].filter(Boolean).join(' ')||'Not provided'}{entry.approvalDate&&` · ${new Date(entry.approvalDate).toLocaleString()}`}</p>}{entry.rejectionReason&&<p>Reason: {entry.rejectionReason}</p>}{entry.comments&&<p>Comments: {entry.comments}</p>}</li>)}</ul>:<p>No decisions recorded yet.</p>)}</div>;
+}

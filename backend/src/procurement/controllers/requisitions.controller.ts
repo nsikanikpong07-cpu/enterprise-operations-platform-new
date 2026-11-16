@@ -8,7 +8,9 @@ import {
   Patch,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
+import type { CompanyAuthenticatedRequest } from '../../auth/guards/company-access.guard.js';
 import {
   CreateRequisitionDto,
   UpdateRequisitionDto,
@@ -25,8 +27,9 @@ export class RequisitionsController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.requisitions.findOne(id);
+  async findOne(@Param('id', ParseUUIDPipe) id: string, @Req() req: CompanyAuthenticatedRequest) {
+    const requisition = await this.requisitions.findOne(id);
+    return { ...requisition, canManage: requisition.requester.id === req.companyMembership?.id };
   }
 
   @Get(':id/items')
@@ -38,6 +41,16 @@ export class RequisitionsController {
   @ApiBody({ type: CreateRequisitionDto })
   create(@Body() dto: CreateRequisitionDto) {
     return this.requisitions.create(dto);
+  }
+
+  @Post(':id/submit')
+  submit(@Param('id', ParseUUIDPipe) id: string) {
+    return this.requisitions.submit(id);
+  }
+
+  @Post(':id/cancel')
+  cancel(@Param('id', ParseUUIDPipe) id: string) {
+    return this.requisitions.cancel(id);
   }
 
   @Patch(':id')

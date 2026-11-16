@@ -1,0 +1,5 @@
+.env
+node_modules/
+dist/
+private/supplier-documents/
+ocr/output/

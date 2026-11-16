@@ -6,7 +6,7 @@
   --im-cream: #f8f6f1;
   --im-text: #202924;
   --im-muted: #5f6862;
-  --im-border: #deded6;
+  --im-border: var(--theme-border-deded6, #deded6);
 
   min-height: 100vh;
   display: flex;
@@ -41,7 +41,7 @@
   height: 42px;
   place-items: center;
   border-radius: 10px;
-  background: #f8f6f1;
+  background: var(--theme-bg-f8f6f1, #f8f6f1);
   color: var(--im-green-dark);
   font-size: 15px;
   letter-spacing: 0;
@@ -110,12 +110,12 @@
   justify-content: space-between;
   gap: 16px;
   padding: 14px clamp(20px, 4vw, 44px);
-  border-bottom: 1px solid #e6e3db;
-  background: #fffdfa;
+  border-bottom: 1px solid var(--theme-border-e6e3db, #e6e3db);
+  background: var(--theme-bg-fffdfa, #fffdfa);
 }
 
 .im-topbar-title {
-  color: #26342b;
+  color: var(--theme-text-26342b, #26342b);
   font-size: 18px;
   font-weight: 700;
 }
@@ -127,9 +127,9 @@
   gap: 8px;
   min-height: 44px;
   padding: 10px 16px;
-  border: 1px solid #bdc9be;
+  border: 1px solid var(--theme-border-bdc9be, #bdc9be);
   border-radius: 9px;
-  background: white;
+  background: var(--theme-bg-ffffff, white);
   color: var(--im-green-dark);
   font: inherit;
   font-size: 14px;
@@ -147,7 +147,7 @@
 
 .im-signout-button:hover {
   border-color: var(--im-orange);
-  background: #fff6ef;
+  background: var(--theme-bg-fff6ef, #fff6ef);
 }
 
 .im-workspace-content {
@@ -170,7 +170,7 @@
 
 .im-overview h1 {
   margin: 22px 0 14px;
-  color: #17231c;
+  color: var(--theme-text-17231c, #17231c);
   font-size: clamp(32px, 4vw, 48px);
   line-height: 1.1;
   letter-spacing: -0.035em;
@@ -186,7 +186,7 @@
 
 .im-section-heading {
   margin: 34px 0 18px;
-  color: #26342b;
+  color: var(--theme-text-26342b, #26342b);
   font-size: 17px;
   font-weight: 600;
 }
@@ -205,7 +205,7 @@
   padding: 25px;
   border: 1px solid var(--im-border);
   border-radius: 12px;
-  background: white;
+  background: var(--theme-bg-ffffff, white);
   color: var(--im-text);
   text-decoration: none;
   box-shadow: 0 5px 18px rgba(35, 45, 37, 0.04);
@@ -220,7 +220,7 @@
 .im-overview-card:focus-visible {
   transform: translateY(-3px);
   border-color: #bd6b45;
-  background: #fff8f3;
+  background: var(--theme-bg-fff8f3, #fff8f3);
   box-shadow: 0 10px 24px rgba(95, 61, 42, 0.1);
 }
 
@@ -230,7 +230,7 @@
   height: 44px;
   place-items: center;
   border-radius: 10px;
-  background: #f8eee8;
+  background: var(--theme-bg-f8eee8, #f8eee8);
   color: var(--im-orange);
   font-size: 25px;
   line-height: 1;
@@ -238,7 +238,7 @@
 
 .im-overview-card h3 {
   margin: 20px 0 8px;
-  color: #1f2b23;
+  color: var(--theme-text-1f2b23, #1f2b23);
   font-size: 19px;
 }
 
@@ -365,4 +365,52 @@
     min-height: 0;
     overflow-y: auto;
   }
+}
+
+.im-topbar-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.im-theme-button {
+  border: 1px solid var(--theme-border-a9b9ad, #a9b9ad);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  padding: 9px 12px;
+  font: inherit;
+  cursor: pointer;
+}
+.im-theme-button:focus-visible {
+  outline: 3px solid #e59060;
+  outline-offset: 2px;
+}
+
+/* Keep the brand and sign-out control readable in dark mode. */
+html[data-theme="dark"] .im-brand-mark {
+  background: #eaf0e8;
+  color: #183c2b;
+}
+html[data-theme="dark"] .im-signout-button {
+  color: #f1f5ef;
+  background: #293b33;
+  border-color: #a8b9ac;
+}
+html[data-theme="dark"] .im-signout-button span {
+  color: #f0a77f;
+}
+html[data-theme="dark"] .im-signout-button:hover {
+  color: #ffffff;
+  background: #3a5044;
+  border-color: #f0a77f;
+}
+
+/* Make the overview label, links and icons readable in dark mode */
+html[data-theme="dark"] .im-overview-label {
+  color: #c3e8d0;
+}
+
+html[data-theme="dark"] .im-overview-card .im-card-icon,
+html[data-theme="dark"] .im-overview-card .im-card-action {
+  color: #ffb88e;
 }

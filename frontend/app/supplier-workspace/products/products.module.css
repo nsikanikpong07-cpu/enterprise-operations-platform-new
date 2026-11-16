@@ -1,0 +1,5 @@
+.page { display: grid; gap: 24px; max-width: 1500px; margin: 0 auto; }
+.header { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.header h1 { margin: 0; color: #123a29; font-size: clamp(32px, 3.5vw, 48px); line-height: 1.1; letter-spacing: -.035em; }
+.header p { margin: 8px 0 0; color: #4d5952; font-size: 18px; }
+.error { padding: 16px; border-radius: 10px; background: #fff0ed; color: #9c261d; }

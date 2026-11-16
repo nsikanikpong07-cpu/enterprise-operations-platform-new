@@ -2,6 +2,9 @@ import { redirect } from "next/navigation";
 
 import { backendGet } from "../../lib/backend";
 import Sidebar from "./sidebar";
+import { myPermissions } from "../../lib/permissions";
+import Link from "next/link";
+import ThemeToggle from "../components/theme-toggle";
 
 import "./workspace.css";
 import "./sidebar.css";
@@ -33,20 +36,27 @@ export default async function WorkspaceLayout({
     );
   }
 
+  const [permissions, reviewer, supplier] = await Promise.all([
+    myPermissions(),
+    backendGet("/vendor/suppliers"),
+    backendGet("/vendor/me"),
+  ]);
   return (
     <div className="im-workspace">
-      <Sidebar />
+      <Sidebar permissions={permissions} platformReviewer={reviewer.status === 200} />
 
       <div className="im-workspace-main">
         <header className="im-topbar">
           <span className="im-topbar-title">Workspace</span>
 
-          <form action="/api/logout" method="post">
+          <div className="im-topbar-actions">
+            {supplier.status === 200 && <Link href="/supplier-workspace/business-profile">Supplier workspace</Link>}
+            <Link href="/workspace/change-password">Change password</Link><ThemeToggle /><form action="/api/logout" method="post">
             <button className="im-signout-button" type="submit">
               <span aria-hidden="true">↪</span>
               Sign out
             </button>
-          </form>
+          </form></div>
         </header>
 
         <main className="im-workspace-content">{children}</main>

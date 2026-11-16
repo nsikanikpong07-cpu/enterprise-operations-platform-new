@@ -106,10 +106,21 @@ export default async function RoleDetailsPage({
     <section>
       <Link href="/workspace/roles">← Back to roles</Link>
 
-      <p className="eyebrow" style={{ marginTop: "24px" }}>
+      <p
+        style={{
+          display: "table",
+          margin: "24px 0 18px",
+          paddingBottom: "10px",
+          borderBottom: "3px solid #bd6b45",
+          color: "var(--theme-text-234b36, #234b36)",
+          fontSize: "12px",
+          fontWeight: 700,
+          letterSpacing: "0.15em",
+          textTransform: "uppercase",
+        }}
+      >
         Roles &amp; permissions
       </p>
-
       <div
         style={{
           display: "flex",
@@ -124,10 +135,26 @@ export default async function RoleDetailsPage({
           <WorkspaceIcon name="roles" />
         </span>
 
-        <h1>{role.name}</h1>
+        <h1
+          style={{
+            margin: 0,
+            color: "var(--theme-text-172d21, #172d21)",
+            fontSize: "clamp(32px, 4vw, 46px)",
+            lineHeight: 1.12,
+            letterSpacing: "-0.03em",
+          }}
+        >
+          {role.name}
+        </h1>
       </div>
-
-      <p className="im-overview-intro">
+      <p
+        style={{
+          margin: "8px 0 26px",
+          color: "var(--theme-text-626a64, #626a64)",
+          fontSize: "17px",
+          lineHeight: 1.5,
+        }}
+      >
         {role.description || "Manage permissions for this role."}
       </p>
 

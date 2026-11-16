@@ -17,10 +17,10 @@
   height: 38px;
   align-items: center;
   justify-content: center;
-  border: 1px solid #dedbd5;
+  border:1px solid var(--theme-border-dedbd5, #dedbd5);
   border-radius: 8px;
-  background: #fff;
-  color: #a94e2b;
+  background:var(--theme-bg-ffffff, #fff);
+  color:var(--theme-text-a94e2b, #a94e2b);
   cursor: pointer;
   transition:
     background-color 160ms ease,
@@ -35,26 +35,26 @@
 }
 
 .iconButton:hover {
-  border-color: #d28b69;
-  background: #faf0eb;
+  border-color:var(--theme-border-d28b69, #d28b69);
+  background:var(--theme-bg-faf0eb, #faf0eb);
 }
 
 .dangerButton {
-  color: #a8322a;
+  color:var(--theme-text-a8322a, #a8322a);
 }
 
 .dangerButton:hover {
-  border-color: #d27a73;
-  background: #fff0ee;
+  border-color:#d27a73;
+  background:var(--theme-bg-fff0ee, #fff0ee);
 }
 
 .reactivateButton {
-  color: #245b32;
+  color:var(--theme-text-245b32, #245b32);
 }
 
 .reactivateButton:hover {
-  border-color: #8fba98;
-  background: #e8f3e6;
+  border-color:var(--theme-border-8fba98, #8fba98);
+  background:var(--theme-bg-e8f3e6, #e8f3e6);
 }
 
 .iconButton:focus-visible,
@@ -74,13 +74,13 @@
   margin-top: 12px;
   padding: 16px;
   border-radius: 10px;
-  background: #faf0eb;
+  background:var(--theme-bg-faf0eb, #faf0eb);
 }
 
 .editForm label {
   display: grid;
   gap: 6px;
-  color: #34483a;
+  color:var(--theme-text-34483a, #34483a);
   font-size: 13px;
   font-weight: 600;
 }
@@ -92,10 +92,10 @@
   min-height: 40px;
   box-sizing: border-box;
   padding: 8px 10px;
-  border: 1px solid #cfcfca;
+  border:1px solid var(--theme-border-cfcfca, #cfcfca);
   border-radius: 7px;
-  background: #fff;
-  color: #202924;
+  background:var(--theme-bg-ffffff, #fff);
+  color:var(--theme-text-202924, #202924);
   font: inherit;
 }
 
@@ -126,25 +126,25 @@
 
 .addButton,
 .saveButton {
-  border: 1px solid #a94e2b;
-  background: #a94e2b;
-  color: #fff;
+  border:1px solid #a94e2b;
+  background:#a94e2b;
+  color:#fff;
 }
 
 .addButton:hover:not(:disabled),
 .saveButton:hover:not(:disabled) {
-  border-color: #853b20;
-  background: #853b20;
+  border-color:#853b20;
+  background:#853b20;
 }
 
 .cancelButton {
-  border: 1px solid #cfcfca;
-  background: #fff;
-  color: #173326;
+  border:1px solid var(--theme-border-cfcfca, #cfcfca);
+  background:var(--theme-bg-ffffff, #fff);
+  color:var(--theme-text-173326, #173326);
 }
 
 .cancelButton:hover:not(:disabled) {
-  background: #f3f5f2;
+  background:var(--theme-bg-f3f5f2, #f3f5f2);
 }
 
 .addButton:disabled,
@@ -160,7 +160,7 @@
 
 .message {
   margin: 10px 0 0;
-  color: #8f3028;
+  color:var(--theme-text-8f3028, #8f3028);
   font-size: 13px;
   line-height: 1.5;
 }

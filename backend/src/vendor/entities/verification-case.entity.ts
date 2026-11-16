@@ -32,6 +32,9 @@ export class VerificationCase extends BaseEntity {
   @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
   completedAt?: Date;
 
+  @Column({ name: 'verified_by', type: 'uuid', nullable: true })
+  verifiedById?: string | null;
+
   @Column({ name: 'expires_at', type: 'timestamptz', nullable: true })
   expiresAt?: Date;
 }

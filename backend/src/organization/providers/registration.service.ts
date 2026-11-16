@@ -19,6 +19,7 @@ import {
 import { AuditWriterService } from "../../audit/providers/audit-writer.service.js";
 import { AuthRateLimitService } from "../../auth/providers/auth-rate-limit.service.js";
 import { Supplier } from "../../vendor/entities/supplier.entity.js";
+import { SupplierContact } from "../../vendor/entities/supplier-contact.entity.js";
 import { Company } from "../entities/company.entity.js";
 import { RegisterOrganizationDto } from "../dto/register-organization.dto.js";
 
@@ -115,7 +116,16 @@ export class RegistrationService {
             throw new ServiceUnavailableException(
               "Run the organization registration migration first",
             );
-          for (const grant of [permission, organizationPermission]) {
+          const catalogPermission = await manager.findOneBy(Permission, { name: "manage_catalog" });
+          if (!catalogPermission) throw new ServiceUnavailableException("Run the catalog permission migration before registration");
+          const requisitionPermission = await manager.findOneBy(Permission, { name: "create_requisition" });
+          if (!requisitionPermission) throw new ServiceUnavailableException("Run the requisition permission migration before registration");
+          const approvalPermission = await manager.findOneBy(Permission, { name: "approve_requisition" });
+          if (!approvalPermission) throw new ServiceUnavailableException("Run the requisition permission migration before registration");
+          const orderPermission = await manager.findOneBy(Permission, { name: "create_purchase_order" });
+          const receiptPermission = await manager.findOneBy(Permission, { name: "receive_goods" });
+          if (!orderPermission || !receiptPermission) throw new ServiceUnavailableException("Run the procurement permission migration before registration");
+          for (const grant of [permission, organizationPermission, catalogPermission, requisitionPermission, approvalPermission, orderPermission, receiptPermission]) {
             await manager.save(
               RolePermission,
               manager.create(RolePermission, {
@@ -169,6 +179,17 @@ export class RegistrationService {
           await manager.query(
             "INSERT INTO vendor.supplier_accounts (user_id,supplier_id) VALUES ($1,$2)",
             [user.id, vendor.id],
+          );
+          await manager.save(
+            SupplierContact,
+            manager.create(SupplierContact, {
+              supplier: { id: vendor.id },
+              name: `${user.firstName} ${user.lastName}`.trim(),
+              email: user.email,
+              phone: user.phone,
+              position: "Primary contact",
+              isPrimary: true,
+            }),
           );
           await this.audit.write(manager, {
             action: "vendor_registered",

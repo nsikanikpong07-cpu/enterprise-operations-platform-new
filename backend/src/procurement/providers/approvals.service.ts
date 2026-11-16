@@ -1,10 +1,11 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 
 import {
   CreateApprovalDto,
@@ -22,22 +23,26 @@ export class ApprovalsService {
     private readonly dataSource: DataSource,
   ) {}
 
-  create(dto: CreateApprovalDto): Promise<Approval> {
+  async create(dto: CreateApprovalDto): Promise<Approval> {
     const { requisitionId, approverId, ...rest } = dto;
-
-    return this.approvals.save(
-      this.approvals.create({
-        ...rest,
-        requisition: { id: requisitionId },
-        approver: { id: approverId },
-      }),
-    );
+    return this.dataSource.transaction(async (manager) => {
+      const requisition = await manager.getRepository(Requisition).findOne({
+        where: { id: requisitionId }, lock: { mode: 'pessimistic_write' },
+      });
+      if (!requisition) throw new NotFoundException('Requisition not found');
+      if (requisition.status !== 'Draft')
+        throw new ConflictException('Approvers can only be assigned while the requisition is a draft');
+      const repo = manager.getRepository(Approval);
+      const existing = await repo.findOne({ where: { requisition: { id: requisitionId }, approvalLevel: dto.approvalLevel } });
+      if (existing) throw new ConflictException('An approver is already assigned to this level');
+      return repo.save(repo.create({ ...rest, requisition: { id: requisitionId }, approver: { id: approverId } }));
+    });
   }
 
   forRequisition(requisitionId: string): Promise<Approval[]> {
     return this.approvals.find({
       where: { requisition: { id: requisitionId } },
-      relations: { approver: true },
+      relations: { approver: { user: true } },
       order: { approvalLevel: 'ASC' },
     });
   }
@@ -47,12 +52,52 @@ export class ApprovalsService {
       where: {
         approver: { id: approverId },
         approvalStatus: 'Pending',
+        requisition: { status: In(['Submitted', 'Pending']) },
       },
       relations: { requisition: true },
     });
   }
 
+  pendingForCompany(companyId: string, approverId: string): Promise<Requisition[]> {
+    return this.dataSource.getRepository(Requisition).createQueryBuilder('r')
+      .leftJoinAndSelect('r.requester', 'requester')
+      .leftJoinAndSelect('requester.user', 'requesterUser')
+      .where('r.company_id = :companyId', { companyId })
+      .andWhere('r.requester_id <> :approverId', { approverId })
+      .andWhere('r.status IN (:...statuses)', { statuses: ['Submitted', 'Pending'] })
+      .andWhere('r.approval_status = :status', { status: 'Pending' })
+      .orderBy('r.created_at', 'DESC')
+      .getMany();
+  }
+
+  async decideRequisition(id: string, approverId: string, dto: DecideApprovalDto): Promise<Approval> {
+    if (dto.approvalStatus === 'Rejected' && !dto.rejectionReason?.trim())
+      throw new BadRequestException('A rejection reason is required');
+    return this.dataSource.transaction(async (manager) => {
+      const requisitions = manager.getRepository(Requisition);
+      const rows = await manager.query('SELECT requester_id FROM procurement.requisitions WHERE id=$1 FOR UPDATE', [id]);
+      const requisition = rows.length ? await requisitions.findOneBy({ id }) : null;
+      if (!requisition) throw new NotFoundException('Requisition not found');
+      if (rows[0].requester_id === approverId) throw new ConflictException('You cannot approve your own requisition');
+      if (!['Submitted', 'Pending'].includes(requisition.status) || requisition.approvalStatus !== 'Pending')
+        throw new ConflictException('This requisition is no longer awaiting approval');
+      const approvals = manager.getRepository(Approval);
+      const previous = await approvals.find({ where: { requisition: { id } }, order: { approvalLevel: 'DESC' } });
+      const approval = await approvals.save(approvals.create({
+        requisition: { id }, approver: { id: approverId }, approvalLevel: (previous[0]?.approvalLevel ?? 0) + 1,
+        approvalStatus: dto.approvalStatus, approvalDate: new Date(), comments: dto.comments?.trim() || undefined,
+        rejectionReason: dto.approvalStatus === 'Rejected' ? dto.rejectionReason?.trim() : undefined,
+      }));
+      requisition.approvalStatus = dto.approvalStatus;
+      requisition.status = dto.approvalStatus;
+      await requisitions.save(requisition);
+      return approval;
+    });
+  }
+
   async decide(id: string, dto: DecideApprovalDto): Promise<Approval> {
+    if (dto.approvalStatus === 'Rejected' && !dto.rejectionReason?.trim())
+      throw new BadRequestException('A rejection reason is required');
     return this.dataSource.transaction(async (manager) => {
       const approvalRepository = manager.getRepository(Approval);
       const requisitionRepository = manager.getRepository(Requisition);
@@ -89,6 +134,17 @@ export class ApprovalsService {
         throw new ConflictException(
           'This approval already has a different decision',
         );
+      }
+
+      // A retry of the same decision must not rewrite a later requisition state.
+      if (approval.approvalStatus === dto.approvalStatus) return approval;
+
+      // Never decide a draft, cancelled or already finalized requisition.
+      if (
+        approval.approvalStatus === 'Pending' &&
+        !['Submitted', 'Pending'].includes(requisition.status)
+      ) {
+        throw new ConflictException('This requisition is not awaiting approval');
       }
 
       // Repeating the same decision preserves its original date and comments.

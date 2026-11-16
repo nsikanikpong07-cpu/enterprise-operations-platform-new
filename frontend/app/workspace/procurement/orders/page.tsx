@@ -1,0 +1,8 @@
+import { myPermissions } from "../../../../lib/permissions";
+import Link from 'next/link';
+import {redirect} from 'next/navigation';
+import {currentCompany} from '../../../../lib/company';
+import {backendGet} from '../../../../lib/backend';
+import OrderWorkspace from '../../../components/order-workspace';
+import styles from '../procurement.module.css';
+export default async function OrdersPage(){const current=await currentCompany();if(current.status===401)redirect('/login');if(!current.company)return <p>Company workspace unavailable.</p>;const permissions=await myPermissions();const id=encodeURIComponent(current.company.id);const [orders,suppliers,requisitions]=await Promise.all([backendGet(`/procurement/purchase-orders?companyId=${id}`),permissions.includes("create_purchase_order")?backendGet(`/procurement/eligible-suppliers?companyId=${id}`):Promise.resolve({status:200,data:[]}),permissions.includes("create_purchase_order")?backendGet(`/procurement/requisitions?companyId=${id}`):Promise.resolve({status:200,data:[]})]);if(orders.status===401)redirect('/login');return <section className={styles.page}><Link href="/workspace/procurement">← Back to procurement</Link><h1>Purchase orders</h1><p className={styles.intro}>Create and track orders.</p>{orders.status===200&&suppliers.status===200&&Array.isArray(orders.data)&&Array.isArray(suppliers.data)?<OrderWorkspace canCreate={permissions.includes("create_purchase_order")} orders={orders.data} suppliers={suppliers.data} requisitions={Array.isArray(requisitions.data)?requisitions.data:[]}/>:<p role="alert">Purchase orders or suppliers could not be loaded.</p>}</section>}

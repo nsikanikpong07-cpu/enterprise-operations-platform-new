@@ -5,19 +5,18 @@
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  background:
-    radial-gradient(circle at 10% 15%, #f5e8df 0, transparent 30%),
-    radial-gradient(circle at 90% 85%, #e9efe7 0, transparent 30%), #f7f6f1;
-  color: #203127;
+  background:radial-gradient(circle at 10% 15%, var(--theme-bg-f5e8df, #f5e8df) 0, transparent 30%),
+    radial-gradient(circle at 90% 85%, var(--theme-bg-e9efe7, #e9efe7) 0, transparent 30%), var(--theme-bg-f7f6f1, #f7f6f1);
+  color:var(--theme-text-203127, #203127);
 }
 
 .card {
   width: min(100%, 1050px);
   box-sizing: border-box;
   padding: 38px;
-  border: 1px solid #e5e5de;
+  border:1px solid var(--theme-border-e5e5de, #e5e5de);
   border-radius: 18px;
-  background: #fff;
+  background:var(--theme-bg-ffffff, #fff);
   box-shadow: 0 12px 40px rgb(35 50 38 / 6%);
 }
 
@@ -25,7 +24,7 @@
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  color: #173326;
+  color:var(--theme-text-173326, #173326);
   font-size: 20px;
   font-weight: 800;
   text-decoration: none;
@@ -37,8 +36,8 @@
   height: 44px;
   place-items: center;
   border-radius: 10px;
-  background: #355e47;
-  color: #fff;
+  background:#355e47;
+  color:#fff;
   font-size: 14px;
   font-weight: 800;
 }
@@ -49,7 +48,7 @@
 
 .header h1 {
   margin: 0;
-  color: #173326;
+  color:var(--theme-text-173326, #173326);
   font-size: clamp(28px, 4vw, 38px);
   line-height: 1.15;
   letter-spacing: -0.03em;
@@ -61,13 +60,13 @@
   height: 3px;
   margin-top: 12px;
   border-radius: 3px;
-  background: #bd6b45;
+  background:#bd6b45;
   content: "";
 }
 
 .header p {
   margin: 14px 0 0;
-  color: #626a64;
+  color:var(--theme-text-626a64, #626a64);
   font-size: 15px;
   line-height: 1.5;
 }
@@ -80,18 +79,18 @@
   min-width: 0;
   margin: 0;
   padding: 0;
-  border: 0;
+  border:0;
 }
 
 .accountTypes legend {
   margin-bottom: 10px;
-  color: #203127;
+  color:var(--theme-text-203127, #203127);
   font-size: 14px;
   font-weight: 700;
 }
 
 .accountTypes legend span {
-  color: #ad3e32;
+  color:var(--theme-text-ad3e32, #ad3e32);
 }
 
 .accountGrid {
@@ -106,7 +105,7 @@
   gap: 10px;
   min-width: 0;
   padding: 14px;
-  border: 1px solid #dce2dc;
+  border:1px solid var(--theme-border-dce2dc, #dce2dc);
   border-radius: 9px;
   cursor: pointer;
   transition:
@@ -115,13 +114,13 @@
 }
 
 .accountOption:hover {
-  border-color: #b6c8b9;
-  background: #f7faf7;
+  border-color:var(--theme-border-b6c8b9, #b6c8b9);
+  background:var(--theme-bg-f7faf7, #f7faf7);
 }
 
 .accountOption input {
   margin: 3px 0 0;
-  accent-color: #355e47;
+  accent-color:var(--theme-text-355e47, #355e47);
 }
 
 .accountOption span {
@@ -130,27 +129,27 @@
 }
 
 .accountOption strong {
-  color: #173326;
+  color:var(--theme-text-173326, #173326);
   font-size: 14px;
 }
 
 .accountOption small {
-  color: #626a64;
+  color:var(--theme-text-626a64, #626a64);
   font-size: 12px;
   line-height: 1.4;
 }
 
 .selected {
-  border-color: #b35a34;
-  background: #fdf3ed;
+  border-color:#b35a34;
+  background:var(--theme-bg-fdf3ed, #fdf3ed);
 }
 
 .notice {
   margin: 18px 0 0;
   padding: 12px 14px;
   border-radius: 8px;
-  background: #fcf0e8;
-  color: #6e4938;
+  background:var(--theme-bg-fcf0e8, #fcf0e8);
+  color:var(--theme-text-6e4938, #6e4938);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -168,13 +167,13 @@
 
 .column h2 {
   margin: 0 0 16px;
-  color: #173326;
+  color:var(--theme-text-173326, #173326);
   font-size: 19px;
 }
 
 .column + .column {
   padding-left: 36px;
-  border-left: 1px solid #e9eae4;
+  border-left:1px solid var(--theme-border-e9eae4, #e9eae4);
 }
 
 .field {
@@ -184,7 +183,7 @@
 }
 
 .field label {
-  color: #293c30;
+  color:var(--theme-text-293c30, #293c30);
   font-size: 13px;
   font-weight: 700;
 }
@@ -195,16 +194,16 @@
   min-height: 43px;
   box-sizing: border-box;
   padding: 10px 12px;
-  border: 1px solid #cbd3cc;
+  border:1px solid var(--theme-border-cbd3cc, #cbd3cc);
   border-radius: 8px;
-  background: #fff;
-  color: #203127;
+  background:var(--theme-bg-ffffff, #fff);
+  color:var(--theme-text-203127, #203127);
   font: inherit;
   font-size: 14px;
 }
 
 .field input::placeholder {
-  color: #8a928c;
+  color:var(--theme-text-8a928c, #8a928c);
 }
 
 .field input:focus-visible,
@@ -217,7 +216,7 @@
 }
 
 .field small {
-  color: #69746d;
+  color:var(--theme-text-69746d, #69746d);
   font-size: 12px;
   line-height: 1.45;
 }
@@ -234,7 +233,7 @@
 
 .ownerNote {
   margin: -5px 0 15px;
-  color: #626a64;
+  color:var(--theme-text-626a64, #626a64);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -256,15 +255,15 @@
   height: 34px;
   place-items: center;
   transform: translateY(-50%);
-  border: 0;
+  border:0;
   border-radius: 6px;
-  background: transparent;
-  color: #355e47;
+  background:transparent;
+  color:var(--theme-text-355e47, #355e47);
   cursor: pointer;
 }
 
 .passwordToggle:hover {
-  background: #eef3ee;
+  background:var(--theme-bg-eef3ee, #eef3ee);
 }
 
 .passwordToggle svg {
@@ -277,10 +276,10 @@
   min-height: 46px;
   margin-top: 18px;
   padding: 12px 20px;
-  border: 1px solid #355e47;
+  border:1px solid #355e47;
   border-radius: 8px;
-  background: #355e47;
-  color: #fff;
+  background:#355e47;
+  color:#fff;
   font: inherit;
   font-size: 15px;
   font-weight: 700;
@@ -289,7 +288,7 @@
 }
 
 .submitButton:hover:not(:disabled) {
-  background: #254a35;
+  background:#254a35;
 }
 
 .submitButton:disabled {
@@ -301,26 +300,26 @@
   margin: 20px 0 0;
   padding: 12px 14px;
   border-radius: 8px;
-  background: #f2f5ef;
-  color: #315442;
+  background:var(--theme-bg-f2f5ef, #f2f5ef);
+  color:var(--theme-text-315442, #315442);
   font-size: 14px;
   line-height: 1.5;
 }
 
 .signIn {
   margin: 20px 0 0;
-  color: #626a64;
+  color:var(--theme-text-626a64, #626a64);
   font-size: 14px;
   text-align: center;
 }
 
 .signIn a {
-  color: #355e47;
+  color:var(--theme-text-355e47, #355e47);
   font-weight: 700;
 }
 
 .signIn a:hover {
-  color: #a94e2b;
+  color:var(--theme-text-a94e2b, #a94e2b);
 }
 
 @media (max-width: 760px) {
@@ -339,7 +338,7 @@
 
   .column + .column {
     padding-left: 0;
-    border-left: 0;
+    border-left:0;
   }
 }
 
