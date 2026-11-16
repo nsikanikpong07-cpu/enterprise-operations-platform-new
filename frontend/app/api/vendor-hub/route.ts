@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { currentCompany } from '../../../lib/company';
 import { sameOrigin } from '../../../lib/origin';
 
-const backend = () => process.env.BACKEND_URL ?? 'http://127.0.0.1:3001';
+const backend = () => process.env.BACKEND_URL ?? 'https://enterprise-operations-platform-new.onrender.com';
 
 async function auth() {
   const token = (await cookies()).get('enterprise_session')?.value;

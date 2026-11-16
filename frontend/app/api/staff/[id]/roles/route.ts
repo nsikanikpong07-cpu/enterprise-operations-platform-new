@@ -11,7 +11,7 @@ async function mutate(request: Request, { params }: { params: Promise<{ id: stri
  if (!uuid.test(id) || typeof roleId !== "string" || !uuid.test(roleId)) return NextResponse.json({ message: "Invalid role or staff member." }, { status: 400 });
  const path = method === "POST" ? "/iam/user-roles" : `/iam/user-roles/${encodeURIComponent(id)}/${encodeURIComponent(roleId)}`;
  try {
-  const response = await fetch(`${process.env.BACKEND_URL ?? "http://127.0.0.1:3001"}${path}`, { method, headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, ...(method === "POST" ? { body: JSON.stringify({ companyUserId: id, roleId }) } : {}), cache: "no-store" });
+  const response = await fetch(`${process.env.BACKEND_URL ?? "https://enterprise-operations-platform-new.onrender.com"}${path}`, { method, headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, ...(method === "POST" ? { body: JSON.stringify({ companyUserId: id, roleId }) } : {}), cache: "no-store" });
   const data = await response.json().catch(() => null);
   return NextResponse.json({ message: response.ok ? (method === "POST" ? "Role assigned." : "Role removed.") : data?.message ?? "Could not update the role." }, { status: response.ok ? 200 : response.status });
  } catch { return NextResponse.json({ message: "Connection interrupted. Refresh to check the result." }, { status: 503 }); }

@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
-const backend = () => process.env.BACKEND_URL ?? 'http://127.0.0.1:3001';
+const backend = () => process.env.BACKEND_URL ?? 'https://enterprise-operations-platform-new.onrender.com';
 const isUuid = (value: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 
 export async function GET(_request: Request, context: { params: Promise<{ caseId: string; documentId: string }> }) {

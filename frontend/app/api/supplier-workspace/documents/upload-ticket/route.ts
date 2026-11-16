@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { sameOrigin } from '../../../../../lib/origin';
 
-const backend = () => process.env.BACKEND_URL ?? 'http://127.0.0.1:3001';
+const backend = () => process.env.BACKEND_URL ?? 'https://enterprise-operations-platform-new.onrender.com';
 const uploadBackend = () => process.env.BACKEND_PUBLIC_URL ?? backend();
 
 export async function POST(request: Request) {

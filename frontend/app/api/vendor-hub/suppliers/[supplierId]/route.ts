@@ -9,7 +9,7 @@ export async function GET(_request: Request, context: { params: Promise<{ suppli
   if (!current.company) return NextResponse.json({ message: 'Company workspace unavailable.' }, { status: current.status === 200 ? 403 : current.status });
   const { supplierId } = await context.params;
   try {
-    const response = await fetch(`${process.env.BACKEND_URL ?? 'http://127.0.0.1:3001'}/vendor-hub/suppliers/${encodeURIComponent(supplierId)}?companyId=${encodeURIComponent(current.company.id)}`, { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
+    const response = await fetch(`${process.env.BACKEND_URL ?? 'https://enterprise-operations-platform-new.onrender.com'}/vendor-hub/suppliers/${encodeURIComponent(supplierId)}?companyId=${encodeURIComponent(current.company.id)}`, { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
     return NextResponse.json(await response.json().catch(() => null), { status: response.status });
   } catch { return NextResponse.json({ message: 'Vendor Hub service unavailable.' }, { status: 503 }); }
 }

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { sameOrigin } from "../../../lib/origin";
 import { currentCompany } from "../../../lib/company";
 
-const backend = () => process.env.BACKEND_URL ?? "http://127.0.0.1:3001";
+const backend = () => process.env.BACKEND_URL ?? "https://enterprise-operations-platform-new.onrender.com";
 const valid = (value: unknown): value is string => typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 async function token() { return (await cookies()).get("enterprise_session")?.value; }
 export async function GET(request: Request) {
