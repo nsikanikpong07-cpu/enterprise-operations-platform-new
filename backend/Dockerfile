@@ -25,6 +25,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3001
 ENV SUPPLIER_DOCUMENT_STORAGE_DIR=/var/lib/impressor/supplier-documents
+ENV SUPPLIER_LISTING_STORAGE_DIR=/var/lib/impressor/supplier-documents/listing-photos
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends python3 python3-pip tesseract-ocr \
@@ -36,7 +37,7 @@ COPY --from=build --chown=node:node /app/dist ./dist
 COPY --chown=node:node src/vendor/ocr/verify_cac.py ./ocr/verify_cac.py
 COPY --chown=node:node ocr/requirements.txt ./ocr/requirements.txt
 RUN python3 -m pip install --break-system-packages --no-cache-dir --timeout 300 --retries 10 -r ./ocr/requirements.txt
-RUN mkdir -p /var/lib/impressor/supplier-documents \
+RUN mkdir -p /var/lib/impressor/supplier-documents/listing-photos \
     && chown -R node:node /var/lib/impressor
 
 USER node

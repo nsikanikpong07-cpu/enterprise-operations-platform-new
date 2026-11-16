@@ -60,6 +60,16 @@ export class VerificationController {
     return this.verification.openCase(dto);
   }
 
+  @Get('cases/queue')
+  queueCases() {
+    return this.verification.queueCases();
+  }
+
+  @Post('cases/:id/take')
+  takeCase(@Param('id', ParseUUIDPipe) id: string, @Req() request: AuthenticatedRequest) {
+    return this.verification.takeCase(id, request.user.id);
+  }
+
   @Get('cases')
   casesForProfile(@Query('profileId', ParseUUIDPipe) profileId: string) {
     return this.verification.casesForProfile(profileId);

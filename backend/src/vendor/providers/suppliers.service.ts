@@ -24,7 +24,10 @@ import { SupplierDocument } from '../entities/supplier-document.entity.js';
 import { Supplier } from '../entities/supplier.entity.js';
 import { SupplierListing } from '../entities/supplier-listing.entity.js';
 import { SupplierListingPhoto } from '../entities/supplier-listing-photo.entity.js';
-import type { UploadedCertificate } from './certificate-ocr.service.js';
+import { CertificateOcrService, type UploadedCertificate } from './certificate-ocr.service.js';
+import { VerificationCase } from '../entities/verification-case.entity.js';
+import { VerificationCheck } from '../entities/verification-check.entity.js';
+import { VerificationEvidence } from '../entities/verification-evidence.entity.js';
 
 @Injectable()
 export class SuppliersService {
@@ -39,6 +42,7 @@ export class SuppliersService {
     private readonly documents: Repository<SupplierDocument>,
     private readonly dataSource: DataSource,
     private readonly audit: AuditWriterService,
+    private readonly certificateOcr: CertificateOcrService,
   ) {}
 
   // Suppliers (global registry)
@@ -133,8 +137,9 @@ export class SuppliersService {
       }),
       this.dataSource.query(
         `SELECT c.status, c.expires_at FROM vendor.verification_cases c
-         JOIN vendor.supplier_company_profiles p ON p.id = c.supplier_company_profile_id
-         WHERE p.supplier_id = $1 ORDER BY c.opened_at DESC LIMIT 1`,
+         WHERE c.supplier_id = $1 OR c.supplier_company_profile_id IN
+           (SELECT p.id FROM vendor.supplier_company_profiles p WHERE p.supplier_id = $1)
+         ORDER BY c.opened_at DESC, c.id DESC LIMIT 1`,
         [supplierId],
       ),
     ]);
@@ -142,6 +147,7 @@ export class SuppliersService {
     const currentCase = latestCase[0] as { status: string; expires_at?: string | Date | null } | undefined;
     let verificationStatus = 'not_verified';
     if (currentCase?.status === 'open' || currentCase?.status === 'in_progress') verificationStatus = 'under_review';
+    else if (currentCase?.status === 'rejected') verificationStatus = 'rejected';
     else if (currentCase?.status === 'expired' || (currentCase?.status === 'approved' && currentCase.expires_at && new Date(currentCase.expires_at).getTime() <= Date.now())) verificationStatus = 'expired';
     else if (currentCase?.status === 'approved') verificationStatus = 'verified';
     else if (!currentCase && (await this.documents.count({ where: { supplier: { id: supplierId }, status: 'pending' } }))) verificationStatus = 'under_review';
@@ -250,16 +256,85 @@ export class SuppliersService {
         });
         return saved;
       });
+      const verification = await this.processUploadedCac(document.id, supplierId, userId, file);
       return {
         id: document.id,
         documentType: document.documentType,
-        status: document.status,
+        status: verification.decision === 'approved' ? 'valid' : verification.decision === 'rejected' ? 'rejected' : 'pending',
         createdAt: document.createdAt,
+        verification: {
+          status: verification.decision === 'approved' ? 'verified' : verification.decision === 'rejected' ? 'rejected' : 'under_review',
+          caseId: verification.caseId,
+          ocr: verification.result,
+        },
       };
     } catch (error) {
       await rm(target, { force: true });
       throw error;
     }
+  }
+
+  private async processUploadedCac(documentId: string, supplierId: string, userId: string, file: UploadedCertificate) {
+    let result: Awaited<ReturnType<CertificateOcrService['compareWithQr']>> | {
+      comparison: 'manual_review_needed'; decision: 'manual_review'; fields: Record<string, unknown>;
+      reasons: string[]; notes: string[]; reviewerDecisionRequired: true; verificationStatusChanged: false;
+    };
+    try {
+      result = await this.certificateOcr.compareWithQr(file);
+    } catch (error) {
+      // OCR outages and unreadable uploads stay in the reviewer queue instead of blocking upload.
+      result = {
+        comparison: 'manual_review_needed', decision: 'manual_review', fields: {},
+        reasons: [error instanceof Error ? error.message : 'OCR could not complete the comparison.'],
+        notes: [], reviewerDecisionRequired: true, verificationStatusChanged: false,
+      };
+    }
+    const now = new Date();
+    const status = result.decision === 'approved' ? 'approved' : result.decision === 'rejected' ? 'rejected' : 'open';
+    const decisionSource = result.decision === 'approved' ? 'ocr_match' : result.decision === 'rejected' ? 'ocr_mismatch' : 'ocr_review';
+    return this.dataSource.transaction(async (manager) => {
+      const caseRepo = manager.getRepository(VerificationCase);
+      const verificationCase = await caseRepo.save(caseRepo.create({
+        supplier: { id: supplierId },
+        caseNumber: `VER-${randomUUID()}`,
+        verificationType: 'initial',
+        decisionSource,
+        status,
+        openedBy: { id: userId },
+        openedAt: now,
+        ...(status === 'open' ? {} : { completedAt: now }),
+      }));
+      const checkRepo = manager.getRepository(VerificationCheck);
+      const check = await checkRepo.save(checkRepo.create({
+        verificationCase: { id: verificationCase.id },
+        checkType: 'cac_ocr_qr_comparison',
+        name: 'CAC printed details and QR comparison',
+        status: result.decision === 'approved' ? 'passed' : result.decision === 'rejected' ? 'failed' : 'pending',
+        isRequired: true,
+        checkedAt: now,
+        notes: result.reasons.join('; ').slice(0, 2000),
+      }));
+      await manager.getRepository(VerificationEvidence).save(manager.getRepository(VerificationEvidence).create({
+        check: { id: check.id },
+        supplierDocument: { id: documentId },
+        evidenceType: 'ocr_comparison_result',
+        description: JSON.stringify({
+          documentId, comparison: result.comparison, decision: result.decision,
+          fields: result.fields, reasons: result.reasons, notes: result.notes,
+          reviewerDecisionRequired: result.reviewerDecisionRequired,
+          verificationStatusChanged: result.verificationStatusChanged,
+        }),
+        uploadedBy: { id: userId },
+      }));
+      const documentStatus = result.decision === 'approved' ? 'valid' : result.decision === 'rejected' ? 'rejected' : 'pending';
+      await manager.getRepository(SupplierDocument).update({ id: documentId }, { status: documentStatus });
+      await this.audit.write(manager, {
+        action: result.decision === 'approved' ? 'supplier.certificate.ocr_matched' : result.decision === 'rejected' ? 'supplier.certificate.ocr_mismatch' : 'supplier.certificate.ocr_manual_review',
+        entityType: 'verification_case', entityId: verificationCase.id, actorId: userId,
+        newValues: { decisionSource, status, supplierId, documentId },
+      });
+      return { caseId: verificationCase.id, decision: result.decision, result };
+    });
   }
 
   async updateWorkspaceProfile(userId: string, dto: SupplierWorkspaceProfileDto) {

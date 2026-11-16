@@ -7,6 +7,7 @@ services:
       dockerfile: Dockerfile
     init: true
     env_file:
+    
       - ./backend/.env
     environment:
       # This Compose file is for local use, including localhost reset URLs.

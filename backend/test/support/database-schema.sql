@@ -829,9 +829,12 @@ ALTER TABLE vendor.suppliers OWNER TO enterprise_app;
 
 CREATE TABLE vendor.verification_cases (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
-    supplier_company_profile_id uuid NOT NULL,
+    supplier_company_profile_id uuid,
+    supplier_id uuid,
+    assigned_reviewer_id uuid,
     case_number character varying(100) NOT NULL,
     verification_type character varying(50) DEFAULT 'initial'::character varying NOT NULL,
+    decision_source character varying(30) DEFAULT 'manual'::character varying NOT NULL,
     status character varying(30) DEFAULT 'open'::character varying NOT NULL,
     opened_by uuid NOT NULL,
     opened_at timestamp with time zone DEFAULT now() NOT NULL,
@@ -1971,6 +1974,16 @@ ALTER TABLE ONLY vendor.verification_cases
 
 ALTER TABLE ONLY vendor.verification_cases
     ADD CONSTRAINT verification_cases_supplier_company_profile_id_fkey FOREIGN KEY (supplier_company_profile_id) REFERENCES vendor.supplier_company_profiles(id);
+
+
+--
+-- Global supplier-level verification cases and platform reviewer assignment.
+--
+ALTER TABLE ONLY vendor.verification_cases
+    ADD CONSTRAINT verification_cases_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES vendor.suppliers(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY vendor.verification_cases
+    ADD CONSTRAINT verification_cases_assigned_reviewer_id_fkey FOREIGN KEY (assigned_reviewer_id) REFERENCES iam.users(id) ON DELETE SET NULL;
 
 
 --

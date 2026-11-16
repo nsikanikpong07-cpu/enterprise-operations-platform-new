@@ -39,6 +39,25 @@ export async function POST(request: Request) {
         { message: "Invalid response from authentication service." },
         { status: 502 },
       );
+    let workspace: "supplier" | "company" = "company";
+    try {
+      const supplierResponse = await fetch(`${baseUrl}/vendor/me`, {
+        headers: { Authorization: `Bearer ${result.accessToken}` },
+        cache: "no-store",
+      });
+      if (supplierResponse.ok) workspace = "supplier";
+      else if (supplierResponse.status !== 404) {
+        return NextResponse.json(
+          { message: "Signed in, but the workspace could not be loaded. Please try again." },
+          { status: 503 },
+        );
+      }
+    } catch {
+      return NextResponse.json(
+        { message: "Signed in, but the workspace service is unavailable. Please try again." },
+        { status: 503 },
+      );
+    }
     const jar = await cookies();
     jar.set("enterprise_session", result.accessToken, {
       httpOnly: true,
@@ -46,7 +65,7 @@ export async function POST(request: Request) {
       sameSite: "lax",
       path: "/",
     });
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, workspace });
   } catch {
     return NextResponse.json(
       { message: "Authentication service is unavailable." },

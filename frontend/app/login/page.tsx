@@ -44,7 +44,8 @@ export default function LoginPage() {
         return;
       }
 
-      router.replace("/workspace");
+      const result = await response.json().catch(() => null);
+      router.replace(result?.workspace === "supplier" ? "/supplier-workspace/products" : "/workspace");
       router.refresh();
     } catch {
       setError("Could not reach the service. Please try again.");

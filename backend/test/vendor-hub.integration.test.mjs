@@ -55,3 +55,33 @@ test('adding a verified supplier creates a prospective company relationship and 
   const result = await hub.updateRelationship(companyId, String(added.id), { relationshipStatus: 'active', notes: 'Approved for office purchases.' }, reviewerId);
   assert.equal(result.relationship_status, 'active');
 });
+
+test('an OCR-matched supplier with no expiry is globally eligible without a company profile', async () => {
+  const [matched] = await env.source.query(
+    "INSERT INTO vendor.suppliers(legal_name,registration_number,supplier_type,country_code) VALUES ('OCR Matched Supplier','RC-OCR-MATCH','Office supplies','NG') RETURNING id",
+  );
+  await env.source.query(
+    "INSERT INTO vendor.verification_cases(supplier_id,case_number,verification_type,decision_source,status,opened_by,expires_at) VALUES ($1,'CASE-OCR-MATCH','initial','ocr_match','approved',$2,NULL)",
+    [matched.id, reviewerId],
+  );
+  await env.source.query(
+    "INSERT INTO vendor.supplier_listings(supplier_id,listing_type,name,category,description,pricing_model,price,currency,unit,status) VALUES ($1,'product','Paper','Office & Stationery','Paper products.','fixed',100,'NGN','ream','active')",
+    [matched.id],
+  );
+
+  const [uncertain] = await env.source.query(
+    "INSERT INTO vendor.suppliers(legal_name,registration_number,supplier_type,country_code) VALUES ('OCR Review Supplier','RC-OCR-REVIEW','Office supplies','NG') RETURNING id",
+  );
+  await env.source.query(
+    "INSERT INTO vendor.verification_cases(supplier_id,case_number,verification_type,decision_source,status,opened_by,expires_at) VALUES ($1,'CASE-OCR-REVIEW','initial','ocr_review','open',$2,NULL)",
+    [uncertain.id, reviewerId],
+  );
+  await env.source.query(
+    "INSERT INTO vendor.supplier_listings(supplier_id,listing_type,name,category,description,pricing_model,price,currency,unit,status) VALUES ($1,'product','Paper','Office & Stationery','Paper products.','fixed',100,'NGN','ream','active')",
+    [uncertain.id],
+  );
+
+  const result = await hub.search(companyId, { page: 1, pageSize: 10 });
+  assert.ok(result.items.some((item) => item.id === matched.id));
+  assert.ok(!result.items.some((item) => item.id === uncertain.id));
+});

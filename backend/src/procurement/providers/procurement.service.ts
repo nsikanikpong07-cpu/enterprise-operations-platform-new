@@ -19,9 +19,9 @@ export class ProcurementService {
     private readonly dataSource: DataSource,
   ) {}
 
-  // Return only suppliers with an approved, unexpired verification case.
+  // Return only suppliers with a current platform approval. A null expiry means no expiry was supplied.
   eligibleSuppliers(companyId: string): Promise<Array<{id: string; name: string}>> {
-    return this.dataSource.query(`SELECT p.id, COALESCE(s.trading_name, s.legal_name) AS name FROM vendor.supplier_company_profiles p JOIN vendor.suppliers s ON s.id=p.supplier_id WHERE p.company_id=$1 AND EXISTS (SELECT 1 FROM vendor.verification_cases v WHERE v.supplier_company_profile_id=p.id AND v.status='approved' AND v.verified_by IS NOT NULL AND v.expires_at > NOW() AND NOT EXISTS (SELECT 1 FROM vendor.verification_cases newer WHERE newer.supplier_company_profile_id=v.supplier_company_profile_id AND (newer.opened_at, newer.id) > (v.opened_at, v.id))) ORDER BY name`, [companyId]);
+    return this.dataSource.query(`SELECT p.id, COALESCE(s.trading_name, s.legal_name) AS name FROM vendor.supplier_company_profiles p JOIN vendor.suppliers s ON s.id=p.supplier_id WHERE p.company_id=$1 AND EXISTS (SELECT 1 FROM vendor.verification_cases v WHERE COALESCE(v.supplier_id,(SELECT vp.supplier_id FROM vendor.supplier_company_profiles vp WHERE vp.id=v.supplier_company_profile_id))=p.supplier_id AND v.status='approved' AND (v.verified_by IS NOT NULL OR v.decision_source='ocr_match') AND (v.expires_at IS NULL OR v.expires_at > NOW()) AND NOT EXISTS (SELECT 1 FROM vendor.verification_cases newer LEFT JOIN vendor.supplier_company_profiles np ON np.id=newer.supplier_company_profile_id WHERE COALESCE(newer.supplier_id,np.supplier_id)=p.supplier_id AND (newer.opened_at, newer.id) > (v.opened_at, v.id))) ORDER BY name`, [companyId]);
   }
 
   // Purchase orders
@@ -68,7 +68,7 @@ export class ProcurementService {
       if (!requisitions.length) throw new BadRequestException('An approved requisition from this company is required');
       // Fail closed when no current approval can be established.
       const suppliers = await manager.query(
-        `SELECT p.id FROM vendor.supplier_company_profiles p WHERE p.id=$1 AND p.company_id=$2 AND EXISTS (SELECT 1 FROM vendor.verification_cases v WHERE v.supplier_company_profile_id=p.id AND v.status='approved' AND v.verified_by IS NOT NULL AND v.expires_at > NOW() AND NOT EXISTS (SELECT 1 FROM vendor.verification_cases newer WHERE newer.supplier_company_profile_id=v.supplier_company_profile_id AND (newer.opened_at, newer.id) > (v.opened_at, v.id)))`,
+        `SELECT p.id FROM vendor.supplier_company_profiles p WHERE p.id=$1 AND p.company_id=$2 AND EXISTS (SELECT 1 FROM vendor.verification_cases v WHERE COALESCE(v.supplier_id,(SELECT vp.supplier_id FROM vendor.supplier_company_profiles vp WHERE vp.id=v.supplier_company_profile_id))=p.supplier_id AND v.status='approved' AND (v.verified_by IS NOT NULL OR v.decision_source='ocr_match') AND (v.expires_at IS NULL OR v.expires_at > NOW()) AND NOT EXISTS (SELECT 1 FROM vendor.verification_cases newer LEFT JOIN vendor.supplier_company_profiles np ON np.id=newer.supplier_company_profile_id WHERE COALESCE(newer.supplier_id,np.supplier_id)=p.supplier_id AND (newer.opened_at, newer.id) > (v.opened_at, v.id)))`,
         [supplierId, companyId],
       );
       if (!suppliers.length) throw new BadRequestException('Supplier verification must be approved and current');
@@ -151,7 +151,7 @@ export class ProcurementService {
         throw new ConflictException('Only a draft or previously approved order can be marked issued');
       const requisitions = await manager.query(`SELECT id FROM procurement.requisitions WHERE id=$1 AND company_id=$2 AND approval_status='Approved' AND status <> 'Cancelled'`, [order.requisition_id, order.company_id]);
       if (!requisitions.length) throw new BadRequestException('An approved requisition from this company is required');
-      const suppliers = await manager.query(`SELECT p.id FROM vendor.supplier_company_profiles p WHERE p.id=$1 AND p.company_id=$2 AND EXISTS (SELECT 1 FROM vendor.verification_cases v WHERE v.supplier_company_profile_id=p.id AND v.status='approved' AND v.verified_by IS NOT NULL AND v.expires_at > NOW() AND NOT EXISTS (SELECT 1 FROM vendor.verification_cases newer WHERE newer.supplier_company_profile_id=v.supplier_company_profile_id AND (newer.opened_at, newer.id) > (v.opened_at, v.id)))`, [order.supplier_id, order.company_id]);
+      const suppliers = await manager.query(`SELECT p.id FROM vendor.supplier_company_profiles p WHERE p.id=$1 AND p.company_id=$2 AND EXISTS (SELECT 1 FROM vendor.verification_cases v WHERE COALESCE(v.supplier_id,(SELECT vp.supplier_id FROM vendor.supplier_company_profiles vp WHERE vp.id=v.supplier_company_profile_id))=p.supplier_id AND v.status='approved' AND (v.verified_by IS NOT NULL OR v.decision_source='ocr_match') AND (v.expires_at IS NULL OR v.expires_at > NOW()) AND NOT EXISTS (SELECT 1 FROM vendor.verification_cases newer LEFT JOIN vendor.supplier_company_profiles np ON np.id=newer.supplier_company_profile_id WHERE COALESCE(newer.supplier_id,np.supplier_id)=p.supplier_id AND (newer.opened_at, newer.id) > (v.opened_at, v.id)))`, [order.supplier_id, order.company_id]);
       if (!suppliers.length) throw new BadRequestException('Supplier verification must be approved and current');
       const lines = await manager.getRepository(PurchaseOrderItem).count({ where: { purchaseOrder: { id } } });
       if (!lines) throw new BadRequestException('Add at least one item before marking the purchase order issued');

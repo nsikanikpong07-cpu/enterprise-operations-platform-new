@@ -31,16 +31,7 @@ export default async function SupplierWorkspaceLayout({
 
   return (
     <div className="supplier-workspace">
-      <aside className="supplier-sidebar">
-        <Link className="supplier-brand" href="/supplier-workspace/business-profile">
-          <span className="supplier-brand-mark" aria-hidden="true">◢</span>
-          <span>
-            <strong>IMPRESSOR</strong>
-            <small>SUPPLIER WORKSPACE</small>
-          </span>
-        </Link>
-        <SupplierWorkspaceNav />
-      </aside>
+      <SupplierWorkspaceNav />
       <div className="supplier-main">
         <header className="supplier-topbar">
           <span>Supplier workspace</span>
