@@ -36,10 +36,9 @@ export default async function WorkspaceLayout({
     );
   }
 
-  const [permissions, reviewer, supplier] = await Promise.all([
+  const [permissions, reviewer] = await Promise.all([
     myPermissions(),
     backendGet("/vendor/suppliers"),
-    backendGet("/vendor/me"),
   ]);
   return (
     <div className="im-workspace">
@@ -50,7 +49,6 @@ export default async function WorkspaceLayout({
           <span className="im-topbar-title">Workspace</span>
 
           <div className="im-topbar-actions">
-            {supplier.status === 200 && <Link href="/supplier-workspace/business-profile">Supplier workspace</Link>}
             <Link href="/workspace/change-password">Change password</Link><ThemeToggle /><form action="/api/logout" method="post">
             <button className="im-signout-button" type="submit">
               <span aria-hidden="true">↪</span>

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -42,10 +42,33 @@ export class VerificationService {
     });
   }
 
+  async queueCases() {
+    return this.cases.find({
+      where: [{ status: 'open' }, { status: 'in_progress' }],
+      relations: { openedBy: true, supplier: true, assignedReviewer: true },
+      order: { openedAt: 'ASC', id: 'ASC' },
+    });
+  }
+
+  async takeCase(id: string, reviewerId: string) {
+    const result = await this.cases.createQueryBuilder()
+      .update(VerificationCase)
+      .set({ status: 'in_progress', assignedReviewer: { id: reviewerId } })
+      .where('id = :id AND status = :status AND assigned_reviewer_id IS NULL', { id, status: 'open' })
+      .execute();
+    if (!result.affected) {
+      const existing = await this.findCase(id);
+      if (existing.status === 'in_progress' && existing.assignedReviewer?.id === reviewerId) return existing;
+      if (existing.status === 'open') throw new ConflictException('Another reviewer has already taken this case.');
+      throw new ConflictException('This case is no longer waiting for review.');
+    }
+    return this.findCase(id);
+  }
+
   async findCase(id: string): Promise<VerificationCase> {
     const vCase = await this.cases.findOne({
       where: { id },
-      relations: { openedBy: true, companyProfile: { supplier: true } },
+      relations: { openedBy: true, companyProfile: { supplier: true }, supplier: true, assignedReviewer: true },
     });
     if (!vCase)
       throw new NotFoundException(`VerificationCase ${id} not found`);
@@ -58,10 +81,17 @@ export class VerificationService {
     reviewerId: string,
   ): Promise<VerificationCase> {
     const vCase = await this.findCase(id);
-    if (dto.status === 'approved' && (!vCase.expiresAt || new Date(vCase.expiresAt).getTime() <= Date.now()))
-      throw new BadRequestException('A future verification expiry date is required for approval');
+    if (!vCase.assignedReviewer)
+      throw new ConflictException('Take this case from the verification queue before deciding it.');
+    if (vCase.assignedReviewer.id !== reviewerId)
+      throw new ForbiddenException('Only the reviewer assigned to this case can decide it.');
+    if (dto.status === 'approved' && vCase.expiresAt && new Date(vCase.expiresAt).getTime() <= Date.now())
+      throw new BadRequestException('The verification expiry date must be in the future.');
     Object.assign(vCase, dto);
-    if (dto.status) vCase.verifiedById = dto.status === 'approved' ? reviewerId : null;
+    if (dto.status) {
+      vCase.verifiedById = dto.status === 'approved' ? reviewerId : null;
+      vCase.decisionSource = 'manual';
+    }
     if (dto.status && ['approved', 'rejected'].includes(dto.status))
       vCase.completedAt = new Date();
     const saved = await this.cases.save(vCase);
@@ -74,8 +104,9 @@ export class VerificationService {
           checkedAt: new Date(),
         },
       );
-      await this.supplierDocuments.update(
-        { supplier: { id: vCase.companyProfile.supplier.id }, documentType: 'CAC registration certificate' },
+      const supplierId = vCase.supplier?.id ?? vCase.companyProfile?.supplier?.id;
+      if (supplierId) await this.supplierDocuments.update(
+        { supplier: { id: supplierId }, documentType: 'CAC registration certificate' },
         { status: dto.status === 'approved' ? 'valid' : 'rejected' },
       );
     }

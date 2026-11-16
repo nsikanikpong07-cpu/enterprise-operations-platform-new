@@ -603,9 +603,20 @@ def main():
             size = f" (QR is about {w} px wide; 150+ is needed)" if w else ""
             result, reasons = "REVIEW", [f"QR code could not be decoded{size}; use the original PDF or a sharper scan"]
       else:
+            unreadable = [
+                  k for k, v in pass_1.items()
+                  if v["certificate"] is None or v["qr"] is None
+                     or (v.get("note") or "").startswith("near match")
+            ]
             failed = [f"{k}: {v['note']}" for k, v in pass_1.items() if not v["match"]]
-            result = "PASS" if not failed else "REVIEW"
-            reasons = failed or ["registration number and company name match"]
+            if unreadable:
+                  result = "REVIEW"
+                  reasons = [f"{k}: {pass_1[k]['note'] or 'could not be read confidently'}" for k in unreadable]
+            elif failed:
+                  result = "FAIL"
+                  reasons = failed
+            else:
+                  result, reasons = "PASS", ["registration number and company name match"]
             if qr.get("qr_width_px") and qr["qr_width_px"] < 120:
                   notes.append(f"QR is small ({qr['qr_width_px']} px); decoded but the scan is low quality")
       # does the PDF's hidden text agree with what is visible on the page?

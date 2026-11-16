@@ -19,17 +19,18 @@ export class VendorHubService {
     const location = filters.location?.trim() || null;
     const rows = await this.db.query(
       `WITH latest_verification AS (
-         SELECT DISTINCT ON (p.supplier_id) p.supplier_id, c.status, c.expires_at
-         FROM vendor.supplier_company_profiles p
-         JOIN vendor.verification_cases c ON c.supplier_company_profile_id = p.id
-         ORDER BY p.supplier_id, c.opened_at DESC, c.created_at DESC
+         SELECT DISTINCT ON (COALESCE(c.supplier_id, p.supplier_id)) COALESCE(c.supplier_id, p.supplier_id) AS supplier_id, c.status, c.expires_at
+         FROM vendor.verification_cases c
+         LEFT JOIN vendor.supplier_company_profiles p ON p.id = c.supplier_company_profile_id
+         WHERE COALESCE(c.supplier_id, p.supplier_id) IS NOT NULL
+         ORDER BY COALESCE(c.supplier_id, p.supplier_id), c.opened_at DESC, c.id DESC
        ), eligible AS (
          SELECT s.id, COALESCE(NULLIF(s.trading_name, ''), s.legal_name) AS name,
                 s.legal_name, s.registration_number, s.supplier_type, s.country_code,
                 v.expires_at AS verification_expires_at
          FROM vendor.suppliers s
          JOIN latest_verification v ON v.supplier_id = s.id
-         WHERE s.status = 'active' AND v.status = 'approved' AND v.expires_at > NOW()
+         WHERE s.status = 'active' AND v.status = 'approved' AND (v.expires_at IS NULL OR v.expires_at > NOW())
            AND EXISTS (SELECT 1 FROM vendor.supplier_listings l WHERE l.supplier_id = s.id AND l.status = 'active' AND l.deleted_at IS NULL)
        )
        SELECT e.*, count(*) OVER()::int AS total_count
@@ -109,14 +110,15 @@ export class VendorHubService {
     const relationship = filters.category?.trim() || null;
     const rows = await this.db.query(
       `WITH latest_verification AS (
-         SELECT DISTINCT ON (p.supplier_id) p.supplier_id, c.status, c.expires_at
-         FROM vendor.supplier_company_profiles p JOIN vendor.verification_cases c ON c.supplier_company_profile_id=p.id
-         ORDER BY p.supplier_id, c.opened_at DESC, c.created_at DESC
+         SELECT DISTINCT ON (COALESCE(c.supplier_id, p.supplier_id)) COALESCE(c.supplier_id, p.supplier_id) AS supplier_id, c.status, c.expires_at
+         FROM vendor.verification_cases c LEFT JOIN vendor.supplier_company_profiles p ON p.id=c.supplier_company_profile_id
+         WHERE COALESCE(c.supplier_id, p.supplier_id) IS NOT NULL
+         ORDER BY COALESCE(c.supplier_id, p.supplier_id), c.opened_at DESC, c.id DESC
        )
        SELECT p.id AS profile_id, p.supplier_id, p.supplier_code, p.relationship_status, p.onboarding_status, p.notes,
               s.legal_name, s.trading_name, s.registration_number, s.supplier_type, s.country_code,
-              CASE WHEN v.status='approved' AND v.expires_at>NOW() AND s.status='active'
-                   THEN 'verified' WHEN v.status='approved' AND (v.expires_at IS NULL OR v.expires_at<=NOW()) THEN 'expired' ELSE 'unverified' END AS platform_verification,
+              CASE WHEN v.status='approved' AND (v.expires_at IS NULL OR v.expires_at>NOW()) AND s.status='active'
+                   THEN 'verified' WHEN v.status='approved' AND v.expires_at<=NOW() THEN 'expired' ELSE 'unverified' END AS platform_verification,
               v.expires_at AS verification_expires_at,
               count(*) OVER()::int AS total_count
        FROM vendor.supplier_company_profiles p
@@ -194,8 +196,8 @@ export class VendorHubService {
        WHERE p.id=$1 AND l.status='active' AND l.deleted_at IS NULL
          AND EXISTS (
            SELECT 1 FROM vendor.suppliers s WHERE s.id=l.supplier_id AND s.status='active'
-             AND (SELECT c.status FROM vendor.verification_cases c JOIN vendor.supplier_company_profiles vp ON vp.id=c.supplier_company_profile_id WHERE vp.supplier_id=s.id ORDER BY c.opened_at DESC,c.created_at DESC LIMIT 1)='approved'
-             AND (SELECT c.expires_at FROM vendor.verification_cases c JOIN vendor.supplier_company_profiles vp ON vp.id=c.supplier_company_profile_id WHERE vp.supplier_id=s.id ORDER BY c.opened_at DESC,c.created_at DESC LIMIT 1)>NOW()
+             AND (SELECT c.status FROM vendor.verification_cases c LEFT JOIN vendor.supplier_company_profiles vp ON vp.id=c.supplier_company_profile_id WHERE COALESCE(c.supplier_id,vp.supplier_id)=s.id ORDER BY c.opened_at DESC,c.id DESC LIMIT 1)='approved'
+             AND ((SELECT c.expires_at FROM vendor.verification_cases c LEFT JOIN vendor.supplier_company_profiles vp ON vp.id=c.supplier_company_profile_id WHERE COALESCE(c.supplier_id,vp.supplier_id)=s.id ORDER BY c.opened_at DESC,c.id DESC LIMIT 1) IS NULL OR (SELECT c.expires_at FROM vendor.verification_cases c LEFT JOIN vendor.supplier_company_profiles vp ON vp.id=c.supplier_company_profile_id WHERE COALESCE(c.supplier_id,vp.supplier_id)=s.id ORDER BY c.opened_at DESC,c.id DESC LIMIT 1)>NOW())
          ) LIMIT 1`, [photoId],
     ) as Array<{ storage_key: string; content_type: string; file_hash: string }>;
     if (!rows.length) throw new NotFoundException('Published supplier photo not found');
@@ -211,10 +213,10 @@ export class VendorHubService {
     return this.db.query(
       `SELECT s.id, COALESCE(NULLIF(s.trading_name,''),s.legal_name) AS name, s.legal_name, s.registration_number, s.supplier_type, s.country_code, v.expires_at AS verification_expires_at
        FROM vendor.suppliers s JOIN LATERAL (
-         SELECT c.status,c.expires_at FROM vendor.verification_cases c JOIN vendor.supplier_company_profiles p ON p.id=c.supplier_company_profile_id
-         WHERE p.supplier_id=s.id ORDER BY c.opened_at DESC,c.created_at DESC LIMIT 1
+         SELECT c.status,c.expires_at FROM vendor.verification_cases c LEFT JOIN vendor.supplier_company_profiles p ON p.id=c.supplier_company_profile_id
+         WHERE COALESCE(c.supplier_id,p.supplier_id)=s.id ORDER BY c.opened_at DESC,c.id DESC LIMIT 1
        ) v ON true
-       WHERE s.id=$1 AND s.status='active' AND v.status='approved' AND v.expires_at>NOW()
+       WHERE s.id=$1 AND s.status='active' AND v.status='approved' AND (v.expires_at IS NULL OR v.expires_at>NOW())
          AND EXISTS (SELECT 1 FROM vendor.supplier_listings l WHERE l.supplier_id=s.id AND l.status='active' AND l.deleted_at IS NULL)`, [supplierId],
     ) as Promise<Array<Record<string, unknown>>>;
   }

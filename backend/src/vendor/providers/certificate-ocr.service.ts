@@ -34,7 +34,7 @@ type PassField = {
 };
 
 type OcrPass = {
-  pass_1_result: 'PASS' | 'REVIEW';
+  pass_1_result: 'PASS' | 'FAIL' | 'REVIEW';
   reasons: string[];
   notes: string[];
   pass_1: Record<string, PassField>;
@@ -57,8 +57,9 @@ export class CertificateOcrService {
                  AND e.evidence_type = 'ocr_comparison_result'
                ORDER BY e.created_at DESC LIMIT 1) AS ocr_result
        FROM vendor.verification_cases c
-       JOIN vendor.supplier_company_profiles p ON p.id = c.supplier_company_profile_id
-       JOIN vendor.supplier_documents d ON d.supplier_id = p.supplier_id
+       JOIN vendor.supplier_documents d ON d.supplier_id = COALESCE(c.supplier_id, (
+         SELECT p.supplier_id FROM vendor.supplier_company_profiles p WHERE p.id = c.supplier_company_profile_id
+       ))
        WHERE c.id = $1
        ORDER BY d.created_at DESC`,
       [caseId],
@@ -144,8 +145,9 @@ export class CertificateOcrService {
     const rows = await this.dataSource.query(
       `SELECT d.id, d.document_type, d.file_url, d.file_hash
        FROM vendor.verification_cases c
-       JOIN vendor.supplier_company_profiles p ON p.id = c.supplier_company_profile_id
-       JOIN vendor.supplier_documents d ON d.supplier_id = p.supplier_id
+       JOIN vendor.supplier_documents d ON d.supplier_id = COALESCE(c.supplier_id, (
+         SELECT p.supplier_id FROM vendor.supplier_company_profiles p WHERE p.id = c.supplier_company_profile_id
+       ))
        WHERE c.id = $1 AND d.id = $2`,
       [caseId, documentId],
     );
@@ -187,17 +189,22 @@ export class CertificateOcrService {
 
       const raw = await readFile(join(outputPath, 'certificate_pass1.json'), 'utf8');
       const result = JSON.parse(raw) as OcrPass;
-      if (!result.pass_1 || !['PASS', 'REVIEW'].includes(result.pass_1_result)) {
+      if (!result.pass_1 || !['PASS', 'FAIL', 'REVIEW'].includes(result.pass_1_result)) {
         throw new Error('OCR returned an unrecognised result.');
       }
 
       return {
-        comparison: result.pass_1_result === 'PASS' ? 'fields_match_qr' : 'manual_review_needed',
+        comparison: result.pass_1_result === 'PASS'
+          ? 'fields_match_qr'
+          : result.pass_1_result === 'FAIL' ? 'fields_mismatch_qr' : 'manual_review_needed',
+        decision: result.pass_1_result === 'PASS'
+          ? 'approved' as const
+          : result.pass_1_result === 'FAIL' ? 'rejected' as const : 'manual_review' as const,
         fields: result.pass_1,
         reasons: result.reasons,
         notes: result.notes,
-        reviewerDecisionRequired: true,
-        verificationStatusChanged: false,
+        reviewerDecisionRequired: result.pass_1_result === 'REVIEW',
+        verificationStatusChanged: result.pass_1_result !== 'REVIEW',
       };
     } catch (error) {
       if (error instanceof BadRequestException || error instanceof ServiceUnavailableException) throw error;
