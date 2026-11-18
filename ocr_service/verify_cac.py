@@ -15,10 +15,15 @@ import os
 import re
 import sys
 import json
+import time
+from concurrent.futures import ThreadPoolExecutor
 from collections import Counter
 from datetime import date
 from difflib import SequenceMatcher, get_close_matches
 from pathlib import Path
+
+# One Tesseract thread per run: the passes below are run side by side instead.
+os.environ.setdefault("OMP_THREAD_LIMIT", "1")
 
 import cv2
 import numpy as np
@@ -410,40 +415,33 @@ def extract_fields(bgr, extra_text=None):
         n = parse_name_anchor(text)
         if n:
             name_c.append((n, weight)); sources["company_name"].append(label)
-        for d in parse_date(text):
-            date_c.append((d, weight)); sources["issue_date"].append(label)
 
     if extra_text:
         absorb("pdf_text_layer", extra_text, 3.0)
 
-    for vname, psm in BASE_PASSES:
-        absorb(f"{vname}_psm{psm}", ocr_text(variants[vname], psm))
-    for n in ocr_red_name(img):
-        name_c.append((n, 1.5)); sources["company_name"].append("red_crop")
+    with ThreadPoolExecutor(max_workers=len(BASE_PASSES) + 1) as pool:
+        jobs = [pool.submit(ocr_text, variants[vname], psm) for vname, psm in BASE_PASSES]
+        red_job = pool.submit(ocr_red_name, img)
+        for (vname, psm), job in zip(BASE_PASSES, jobs):
+            absorb(f"{vname}_psm{psm}", job.result())
+        for n in red_job.result():
+            name_c.append((n, 1.5)); sources["company_name"].append("red_crop")
 
     def status():
         r = vote(reg_c)
         n = vote(name_c, near=True)
-        d = vote(date_c)
-        return r, n, d
+        return r, n, vote([])   # the issue date is no longer read; the slot is kept so output keys stay the same
 
     r, n, d = status()
-    weak = [x for x in (r, n, d) if x[0] is None or x[1] < 2]
-    if d[0] is None or d[1] < 2:
-        for i, t in enumerate(date_line_texts(img, variants)):
-            texts[f"date_line_{i}"] = t
-            for dd in parse_date(t):
-                date_c.append((dd, 1.5)); sources["issue_date"].append("date_line_crop")
-        r, n, d = status()
-        weak = [x for x in (r, n, d) if x[0] is None or x[1] < 2]
+    weak = [x for x in (r, n) if x[0] is None or x[1] < 2]
     if weak:
         for vname, psm in EXTRA_PASSES:
             absorb(f"{vname}_psm{psm}", ocr_text(variants[vname], psm))
             r, n, d = status()
-            if all(x[0] is not None and x[1] >= 2 for x in (r, n, d)):
+            if all(x[0] is not None and x[1] >= 2 for x in (r, n)):
                 break
 
-    if r[0] is None and n[0] is None and d[0] is None:  # nothing readable: page may be sideways/upside down
+    if r[0] is None and n[0] is None:  # nothing readable: page may be sideways/upside down
         for k, label in ((cv2.ROTATE_90_CLOCKWISE, "rot90"), (cv2.ROTATE_180, "rot180"), (cv2.ROTATE_90_COUNTERCLOCKWISE, "rot270")):
             rimg = cv2.rotate(img, k)
             vs = make_variants(rimg)
@@ -674,10 +672,22 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
 
     print(f"Reading {src.name} ({input_note}). This takes 10 to 40 seconds...")
-    qr = decode_qr(img)
+    t0 = time.time()
+    timing = {}
+
+    def timed(label, fn, *a, **kw):
+        t = time.time()
+        out = fn(*a, **kw)
+        timing[label] = round(time.time() - t, 2)
+        return out
+
+    with ThreadPoolExecutor(max_workers=2) as pool:       # the QR search and the OCR do not depend on each other
+        qr_job = pool.submit(timed, "qr_seconds", decode_qr, img)
+        res = timed("ocr_seconds", extract_fields, img, extra_text=layer)
+        qr = qr_job.result()
+    timing["total_seconds"] = round(time.time() - t0, 2)
     q = qr_fields(qr["qr_payload"]) if qr["qr_found"] else \
         {"registration_number": None, "company_name": None, "issue_date": None, "raw_date": None}
-    res = extract_fields(img, extra_text=layer)
 
     reg = res["registration_number"]["value"]
     name = res["company_name"]["value"]
@@ -733,7 +743,7 @@ def main():
         "raw_text": res["raw_text"]}, indent=2), encoding="utf-8")
     (OUT / f"{doc_id}_pass1.json").write_text(json.dumps({
         "document_id": doc_id, "pass_1": pass_1, "pass_1_result": result, "reasons": reasons,
-        "notes": notes, "criteria": ["registration_number", "company_name"],
+        "notes": notes, "timing": timing, "criteria": ["registration_number", "company_name"],
         "info_only": {"issue_date_ocr": dt, "issue_date_qr": q["issue_date"]}}, indent=2), encoding="utf-8")
     cv2.imwrite(str(OUT / f"{doc_id}_deskewed.jpg"), res["deskewed_image"], [cv2.IMWRITE_JPEG_QUALITY, 80])
 
@@ -752,9 +762,9 @@ def main():
     if missing:
         print("\nNot read: " + ", ".join(missing))
         print(f"  Open {OUT / (doc_id + '_ocr.json')} to see every reading, and {doc_id}_deskewed.jpg to see what the OCR saw.")
+    print(f"Time: {timing['total_seconds']} s total (QR search {timing['qr_seconds']} s, OCR {timing['ocr_seconds']} s, run side by side)")
     print(f"Files saved to {OUT}")
 
 
 if __name__ == "__main__":
     main()
-    

@@ -98,6 +98,7 @@ def build_result(job_id):
         "result": p1["pass_1_result"],
         "reasons": p1.get("reasons", []) + p1.get("notes", []),
         "qr_found": qr.get("qr_found", False),
+        "timing": p1.get("timing"),
         "registration_number": f["registration_number"],
         "company_name": f["company_name"],
     }
